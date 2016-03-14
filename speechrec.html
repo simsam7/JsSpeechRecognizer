@@ -1,0 +1,106 @@
+<html>
+
+<head>
+    <title>JavaScript Speech Recognition</title>
+</head>
+
+<body>
+
+    <!-- Include the WebRTC adapter -->
+    <script src="adapter.js"></script>
+    <!-- Include jquery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="JsSpeechRecognizer.js"></script>
+
+    <script>
+        var speechRec = new JsSpeechRecognizer();
+        speechRec.openMic();
+
+        $(document).ready(function() {
+            // Add the handler for the button
+            $("#startStopRecordingButton").click(function() {
+                if (!speechRec.isRecording) {
+                    var word = $("#currentWordText").val();
+                    speechRec.startTrainingRecording(word);
+
+                    // Update the UI
+                    $("#startStopRecordingButton").val("stop");
+                } else {
+                    var recordingId = speechRec.stopRecording();
+
+                    // Update the UI
+                    $("#startStopRecordingButton").val("start");
+
+                    // Append to the results area
+                    var playbackDivId = "playbackResultId" + recordingId;
+                    var playButtonId = "playRecordingButton" + recordingId;
+                    var deleteButtonId = "deleteRecordingButton" + recordingId;
+
+                    var appendHtml = '<div id=' + playbackDivId + '>recording #' + recordingId;
+                    appendHtml += ' for word <b>' + $("#currentWordText").val() + '</b>';
+                    appendHtml += '<input type="button" value="play" id="' + playButtonId + '"" />';
+                    appendHtml += '<input type="button" value="delete" id="' + deleteButtonId + '" />';
+                    appendHtml += '</div>';
+
+                    $("#resultsDiv").append(appendHtml);
+
+                    // Add the play click functionality
+                    var finalPlaybackId = recordingId - 1;
+                    $("#" + playButtonId).click(function() {
+                        speechRec.playTrainingBuffer((finalPlaybackId));
+                    });
+
+                    // Add the delete click functionality
+                    $("#" + deleteButtonId).click(function() {
+                        $("#" + playbackDivId).hide();
+                        speechRec.deleteTrainingBuffer(finalPlaybackId);
+                    });
+
+                }
+            });
+
+            $("#generateModelButton").click(function() {
+                speechRec.generateModel();
+            });
+
+            $("#testingStartStopRecordingButton").click(function() {
+                if (!speechRec.isRecording) {
+                    $("#testingStartStopRecordingButton").val("stop recording");
+                    speechRec.startRecognitionRecording();
+                } else {
+                    $("#testingStartStopRecordingButton").val("start recording");
+                    speechRec.stopRecording();
+                    var result = speechRec.getTopRecognitionHypothesis();
+                    
+                    $("#testingResultsDiv").html("<h3>" + JSON.stringify(result) + "</h3>");
+                }
+            });
+
+        });
+    </script>
+
+
+    <h2>Training</h2>
+    <div>
+        <input id="startStopRecordingButton" type="button" value="start" /> Word:
+        <input id="currentWordText" type="text" value="" />
+    </div>
+
+    <div id="resultsDiv">
+    </div>
+
+    <div id="modelDiv">
+        <input id="generateModelButton" type="button" value="generate model" />
+    </div>
+
+
+    <h2>Testing</h2>
+    <div>
+        <input id="testingStartStopRecordingButton" type="button" value="start testing" />
+    </div>
+    <div id="testingResultsDiv">
+    </div>
+
+</body>
+
+</html>
