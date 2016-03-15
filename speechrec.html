@@ -1,7 +1,15 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+    <meta charset="utf-8">
     <title>JavaScript Speech Recognition</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
 </head>
 
 <body>
@@ -79,26 +87,31 @@
         });
     </script>
 
+    <div class="container">
 
-    <h2>Training</h2>
-    <div>
-        <input id="startStopRecordingButton" type="button" value="start" /> Word:
-        <input id="currentWordText" type="text" value="" />
-    </div>
+        <div class="row" style="margin-top: 10%">
+            <h2>Training</h2>
+            <div>
+                <input class="button-primary" id="startStopRecordingButton" type="button" value="start" /> Word:
+                <input id="currentWordText" type="text" value="" />
+            </div>
 
-    <div id="resultsDiv">
-    </div>
+            <div id="resultsDiv">
+            </div>
 
-    <div id="modelDiv">
-        <input id="generateModelButton" type="button" value="generate model" />
-    </div>
+            <div id="modelDiv">
+                <input class="button-primary" id="generateModelButton" type="button" value="generate model" />
+            </div>
 
 
-    <h2>Testing</h2>
-    <div>
-        <input id="testingStartStopRecordingButton" type="button" value="start testing" />
-    </div>
-    <div id="testingResultsDiv">
+            <h2>Testing</h2>
+            <div>
+                <input class="button-primary" id="testingStartStopRecordingButton" type="button" value="start testing" />
+            </div>
+            <div id="testingResultsDiv">
+            </div>
+        </div>
+
     </div>
 
 </body>
