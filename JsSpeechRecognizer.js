@@ -1,6 +1,11 @@
 /**
  * JavaScript based speech recognizer.
  * 
+ * Copyright 2016, Dominic Winkelman
+ * Free to use under the Apache 2.0 License
+ * 
+ * https://github.com/dreamdom/JsSpeechRecognizer
+ * 
  * Requires the WebRTC adapter.js file.
  */
 
