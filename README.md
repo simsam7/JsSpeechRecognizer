@@ -17,7 +17,7 @@ The WebRTC adapter javascript is neede to use the JSSpeechRecognizer. It is host
 This file contains all of the specific speech recognizer logic.
 
 ### Detailed Write Up
-For a more detailed write up on how the JsSpeechRecognizer was built click [here].(BuildingaSpeechRecognizerinJavaScript.md)
+For a more detailed write up on how the JsSpeechRecognizer was built click [here](BuildingaSpeechRecognizerinJavaScript.md).
 
 ## Live Demo
 Play with the Live Demo [here](http://dreamdom.github.io/speechrec.html). It has only been tested in Firefox and Chrome.
