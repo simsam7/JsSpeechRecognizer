@@ -17,14 +17,12 @@ function JsSpeechRecognizer() {
     this.wordBuffer = [];
     this.modelBuffer = [];
     this.deleteMap = {};
-
-    // TODO: rename this
-    this.dominateBins = [];
+    this.groupedValues = [];
 
     // The speech recognition model
     var model = {};
 
-    // We are not recording yet
+    // State variables. Initialize to not recording and not doing recognition
     this.isRecording = false;
     this.doRecognition = false;
 
@@ -37,7 +35,6 @@ function JsSpeechRecognizer() {
     this.analyser.maxDecibels = -10;
     this.analyser.smoothingTimeConstant = 0;
     this.analyser.fftSize = 1024;
-
 
     // Create the scriptNode
     this.scriptNode = this.audioCtx.createScriptProcessor(this.analyser.fftSize, 1, 1);
@@ -58,13 +55,11 @@ function JsSpeechRecognizer() {
         var dataArray = new Uint8Array(_this.analyser.fftSize);
         _this.analyser.getByteFrequencyData(dataArray);
 
-        // Loop through the array and print out the max
+        // Loop through the array and find the max
         var max = -1;
-        var bin = -1;
         for (i = 0; i < dataArray.length; i++) {
             if (dataArray[i] > max) {
                 max = dataArray[i];
-                bin = i;
             }
         }
 
@@ -73,30 +68,32 @@ function JsSpeechRecognizer() {
             return;
         }
 
-        // Save the data for playback
+        // Save the data for playback. For simplicity just take one channel
         var inputBuffer = audioProcessingEvent.inputBuffer;
         var leftChannel = inputBuffer.getChannelData(0);
         Array.prototype.push.apply(_this.currentRecordingBuffer, new Float32Array(leftChannel));
 
-        // TODO: Rename addIt
+        var numGroups = 25;
+        var groupSize = 10;
         var groups = [];
-        for (i = 0; i < 25; i++) {
-            var addIt = 0;
-            for (var j = 0; j < 10; j++) {
+        
+        for (i = 0; i < numGroups; i++) {
+            var peakGroupValue = 0;
+            for (var j = 0; j < groupSize; j++) {
                 var curPos = (10 * i) + j;
 
                 // normalize the value
                 var tempCalc = Math.floor((dataArray[curPos] / max) * 100);
 
                 // Keep the peak normalized value for this group
-                if (tempCalc > addIt) {
-                    addIt = tempCalc;
+                if (tempCalc > peakGroupValue) {
+                    peakGroupValue = tempCalc;
                 }
 
             }
-            groups.push(addIt);
+            groups.push(peakGroupValue);
         }
-        _this.dominateBins.push(groups);
+        _this.groupedValues.push(groups);
     };
 
 }
@@ -112,20 +109,18 @@ JsSpeechRecognizer.prototype.openMic = function() {
     var _this = this;
     // Acess to the microphone was granted
     function successCallback(stream) {
-        console.log('getUserMedia() got stream: ', stream);
-
         _this.stream = stream;
         _this.source = _this.audioCtx.createMediaStreamSource(stream);
 
         _this.source.connect(_this.analyser);
         _this.analyser.connect(_this.scriptNode);
 
-        // This is needed due to a chrome bug!
+        // This is needed for chrome
         _this.scriptNode.connect(_this.audioCtx.destination);
     }
 
     function errorCallback(error) {
-        console.log('navigator.getUserMedia error: ', error);
+        console.error('navigator.getUserMedia error: ', error);
     }
 };
 
@@ -134,13 +129,12 @@ JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
     this.doRecognition = false;
     this.isRecording = true;
 
-    // Create a new current buffer
+    // Create a new current recording buffer
     this.currentRecordingBuffer = [];
 
-    // Create a new recognition buffer
-    this.dominateBins = [];
+    // Create a new groupedValues buffer
+    this.groupedValues = [];
     this.wordBuffer.push(curWord);
-
 };
 
 JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
@@ -148,27 +142,27 @@ JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
     this.doRecognition = true;
     this.isRecording = true;
 
-    // Create a new current buffer
+    // Create a new current recording buffer
     this.currentRecordingBuffer = [];
 
-    // Create a new recognition buffer
-    this.dominateBins = [];
+    // Create a new groupedValues buffer
+    this.groupedValues = [];
 };
 
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.isRecording = false;
-    this.dominateBins = [].concat.apply([], this.dominateBins);
+    this.groupedValues = [].concat.apply([], this.groupedValues);
 
+    // If we are doing recognition we don't want to save to the model
     if (this.doRecognition) {
-        console.log("doing recognition");
         return;
     }
 
     // This is training
     this.recordingBufferArray.push(this.currentRecordingBuffer.slice(0));
     // Save the recognition model
-    this.modelBuffer.push(this.dominateBins.slice(0));
+    this.modelBuffer.push(this.groupedValues.slice(0));
 
     return this.recordingBufferArray.length;
 };
@@ -222,14 +216,13 @@ JsSpeechRecognizer.prototype.generateModel = function() {
     for (i = 0; i < this.modelBuffer.length; i++) {
         if (!this.deleteMap[i]) {
             key = this.wordBuffer[i];
-            console.log("key: " + key);
             this.model[key].push(this.modelBuffer[i]);
         }
     }
 };
 
 JsSpeechRecognizer.prototype.getTopRecognitionHypothesis = function() {
-    return this.findClosestMatch(this.dominateBins.slice(0));
+    return this.findClosestMatch(this.groupedValues);
 };
 
 
@@ -242,15 +235,15 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input) {
 
     var confidences = {};
 
+    // Loop through all the keys in the model
     for (key in this.model) {
-
         confidences[key] = [];
+        // Loop through all entries for that key
         for (i = 0; i < this.model[key].length; i++) {
 
             var curDistance = this.findDistance(input, this.model[key][i]);
             var curConfidence = this.calcConfidence(curDistance, this.model[key][i]);
 
-            // console.log("cur confidence " + curConfidence);
             confidences[key].push(curConfidence);
         }
 
@@ -269,9 +262,6 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input) {
             }
         }
     }
-
-    // Print out
-    console.log(maxKey + " - " + max);
 
     var result = {};
     result[maxKey] = max;
@@ -310,7 +300,6 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, matchArray) {
         sum += matchArray[i];
     }
 
-    // console.log("distance: " + distance + " sum: " + sum);
     return (1 - (distance / sum));
 };
 
