@@ -22,6 +22,9 @@ For a more detailed write up on how the JsSpeechRecognizer was built click [here
 ## Live Demo
 Play with the Live Demo [here](http://dreamdom.github.io/speechrec.html). It has only been tested in Firefox and Chrome.
 
+### Screenshots
+![Yes No Screenshot](readme-images/screenshot-yes-no.png "Yes No Screenshot")
+![Chicken Frog Screenshot](readme-images/screenshot-chicken-frog.png "Chicken Frog Screenshot")
 
 ### Tips for the Live Demo
 

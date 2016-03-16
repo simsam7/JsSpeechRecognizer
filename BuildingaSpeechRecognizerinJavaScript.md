@@ -6,7 +6,7 @@ This document will go into some details about how the JsSpeechRecognizer was bui
 
 The first and probably most important step is to get access to the microphone. To do this we use WebRTC functions.
 
-JsSpeechRecognizer uses the adapter.js file from the WebRTC project to accomplish this. Hree is a link to their github repo: https://github.com/webrtc/adapter
+JsSpeechRecognizer uses the adapter.js file from the WebRTC project to accomplish this. Here is a link to their github repo: https://github.com/webrtc/adapter
 
 ````javascript
 // Request access to the microphone
@@ -159,4 +159,4 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, matchArray) {
 When all the confidences have been calculated, the highest value result is returned. This becomes our recognition hypothesis.
 
 ## That's It
-Now go have fun playing with the live demo! Be sure to read the tips on using the demo in the README file.
+Now go have fun playing with [the live demo](http://dreamdom.github.io/speechrec.html)! Be sure to read the tips on using the demo in the README file.
