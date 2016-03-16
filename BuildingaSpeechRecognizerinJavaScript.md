@@ -1,6 +1,6 @@
 # Building a Speech Recognizer in JavaScript
 
-This document will go into some details about how the JsSpeechRecognizer was built. It is going to cover the key parts of the code, not every single line.
+This document will go into key details about how the JsSpeechRecognizer was built, and you can always look at the complete file for the full implementation.
 
 ## 1. Get Access to the Microphone
 
@@ -19,7 +19,9 @@ navigator.getUserMedia(constraints, successCallback, errorCallback);
 
 ## 2. Connect the Audio to an Analyser and Script Node
 
-When we successfully get acces to the microphone, we hook up an Analyser. The analyser will take the raw audio samples and calculate a Fast Fourier Transform. This will give us the audio in the frequency domain. Frequency data is much more useful for distinguishing words than the raw audio data.
+When we successfully get acces to the microphone, we hook up an Analyser. Click [here](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createAnalyser) for more details about the analyser. The analyser will take the raw audio samples and calculate a Fast Fourier Transform. This will give us the audio in the frequency domain. Frequency data is much more useful for distinguishing words than the raw audio data.
+
+Notice that the Analyser is connected to a Script Node. A ScriptNode allows us to create a custom processing function.
 
 ````javascript
 // Create an analyser
@@ -46,12 +48,11 @@ function successCallback(stream) {
 }
 ````
 
-Notice that the Analyser is connected to a Script Node. A ScriptNode allows us to create a custom processing function.
-
-
 ## 3. Normalize and Group the Frequencies
 
 In the custom processing function for the script node, we normalize and group the frequencies. We normalize them to help accommodate for different volume levels of the recordings, and we group the frequencies to simplify the data.
+
+The size and number of groupings was chosen through trial and error and may not be optimal. The number of groups and the size of the groups will affect how specific the data model is. A more specific data model will take up more memory, may take more time to process recognitions, but may also be more accurate.
 
 ````javascript
 // Function for script node to process
