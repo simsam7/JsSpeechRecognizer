@@ -5,10 +5,10 @@
     <meta charset="utf-8">
     <title>JavaScript Speech Recognition</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/skeleton.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
 
 </head>
 
@@ -32,12 +32,12 @@
                     speechRec.startTrainingRecording(word);
 
                     // Update the UI
-                    $("#startStopRecordingButton").val("stop");
+                    $("#startStopRecordingButton").val("stop training");
                 } else {
                     var recordingId = speechRec.stopRecording();
 
                     // Update the UI
-                    $("#startStopRecordingButton").val("start");
+                    $("#startStopRecordingButton").val("start training");
 
                     // Append to the results area
                     var playbackDivId = "playbackResultId" + recordingId;
@@ -73,13 +73,13 @@
 
             $("#testingStartStopRecordingButton").click(function() {
                 if (!speechRec.isRecording) {
-                    $("#testingStartStopRecordingButton").val("stop recording");
+                    $("#testingStartStopRecordingButton").val("stop testing");
                     speechRec.startRecognitionRecording();
                 } else {
-                    $("#testingStartStopRecordingButton").val("start recording");
+                    $("#testingStartStopRecordingButton").val("start testing");
                     speechRec.stopRecording();
                     var result = speechRec.getTopRecognitionHypothesis();
-                    
+
                     $("#testingResultsDiv").html("<h3>" + JSON.stringify(result) + "</h3>");
                 }
             });
@@ -89,30 +89,45 @@
 
     <div class="container">
 
-        <div class="row" style="margin-top: 10%">
-            <h2>Training</h2>
-            <div>
-                <input class="button-primary" id="startStopRecordingButton" type="button" value="start" /> Word:
-                <input id="currentWordText" type="text" value="" />
-            </div>
-
-            <div id="resultsDiv">
-            </div>
-
-            <div id="modelDiv">
-                <input class="button-primary" id="generateModelButton" type="button" value="generate model" />
-            </div>
+        <div class="row" style="margin-top: 5%">
+            <h1>JsSpeechReocgnizer</h1>
+            <div>JavaScript Speech Recognition Demo</div>
+            <a href="https://github.com/dreamdom/JsSpeechRecognizer">JsSpeechRecognizer github page</a>
+            <ol style= "margin-top:20px;">
+                <li>Train by writing the word and start recording and stop recording.</li>
+                <li>Try training a word multiple times. Try training multiple words.</li>
+                <li>Generate the model</li>
+                <li>Test by pressing start recording and say a word already trained.</li>
+            </ol>
 
 
-            <h2>Testing</h2>
-            <div>
-                <input class="button-primary" id="testingStartStopRecordingButton" type="button" value="start testing" />
+            </dive>
+
+            <div class="row" style="margin-top: 5%">
+                <h2>Training</h2>
+                <div>
+                    <input class="button-primary" id="startStopRecordingButton" type="button" value="start" /> Word:
+                    <input id="currentWordText" type="text" value="" />
+                </div>
+
+                <div id="resultsDiv">
+                </div>
+
+                <div id="modelDiv">
+                    <input class="button-primary" id="generateModelButton" type="button" value="generate model" />
+                </div>
+
+                <hr />
+
+                <h2>Testing</h2>
+                <div>
+                    <input class="button-primary" id="testingStartStopRecordingButton" type="button" value="start testing" />
+                </div>
+                <div id="testingResultsDiv">
+                </div>
             </div>
-            <div id="testingResultsDiv">
-            </div>
+
         </div>
-
-    </div>
 
 </body>
 
