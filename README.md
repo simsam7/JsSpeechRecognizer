@@ -28,12 +28,11 @@ Play with the Live Demo [here](http://dreamdom.github.io/speechrec.html). It has
 
 ### Tips for the Live Demo
 
-1. After you have trained new words, make sure you press the "generate model" button.
-2. Try training the word "yes", and then training the word "no". Generate the model and then try testing.
-3. It is recommend that you train and test in a quiet room.
-4. You can (and should) train a word multiple times. This is especially important if you are trying to recognize words that sound very similar such as "no" and "go".
-5. Use the "play" button to hear the audio data that was recorded. You should verify that a recording in the training set is of good quality and is of the correct word.
-6. If a recording is incorrect, of bad quality, or contains too much noise get rid of it with the "delete" button.
+1. Try training the word "yes", and then training the word "no".
+2. It is recommend that you train and test in a quiet room.
+3. You can (and should) train a word multiple times. This is especially important if you are trying to recognize words that sound very similar such as "no" and "go".
+4. Use the "play" button to hear the audio data that was recorded. You should verify that a recording in the training set is of good quality and is of the correct word.
+5. If a recording is incorrect, of bad quality, or contains too much noise get rid of it with the "delete" button.
 
 ### Fun Stuff
 

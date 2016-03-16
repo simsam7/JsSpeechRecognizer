@@ -62,13 +62,13 @@
                     $("#" + deleteButtonId).click(function() {
                         $("#" + playbackDivId).hide();
                         speechRec.deleteTrainingBuffer(finalPlaybackId);
+                        speechRec.generateModel();
                     });
+                    
+                    // regenerate the model
+                    speechRec.generateModel();
 
                 }
-            });
-
-            $("#generateModelButton").click(function() {
-                speechRec.generateModel();
             });
 
             $("#testingStartStopRecordingButton").click(function() {
@@ -111,10 +111,6 @@
                 </div>
 
                 <div id="resultsDiv">
-                </div>
-
-                <div id="modelDiv">
-                    <input class="button-primary" id="generateModelButton" type="button" value="generate model" />
                 </div>
 
                 <hr />
