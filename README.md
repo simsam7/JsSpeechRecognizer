@@ -11,7 +11,7 @@ At the moment, JsSpeechRecognizer does not include any data model, so you will h
 ### WebRTC
 JsSpeechRecognizer uses browser WebRTC functionality to get access to the microphone and Fast Fourier Transform (fft) data. Therefore, it will only work in browsers with WebRTC support.
 
-The WebRTC adapter javascript is neede to use the JSSpeechRecognizer. It is hosted on github here. https://github.com/webrtc/adapter
+The WebRTC adapter javascript is needed to use the JsSpeechRecognizer. It is hosted on github here. https://github.com/webrtc/adapter
 
 ### JsSpeechRecognizer.js
 This file contains all of the specific speech recognizer logic.
