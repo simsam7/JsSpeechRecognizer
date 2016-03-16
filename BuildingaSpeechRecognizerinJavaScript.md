@@ -160,4 +160,4 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, matchArray) {
 When all the confidences have been calculated, the highest value result is returned. This becomes our recognition hypothesis.
 
 ## That's It
-Now go have fun playing with [the live demo](http://dreamdom.github.io/speechrec.html)! Be sure to read the tips on using the demo in the README file.
+Now go have fun playing with [the live demo](https://dreamdom.github.io/speechrec.html)! Be sure to read the tips on using the demo in the README file.

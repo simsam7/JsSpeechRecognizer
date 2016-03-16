@@ -20,7 +20,7 @@ This file contains all of the specific speech recognizer logic.
 For a more detailed write up on how the JsSpeechRecognizer was built click [here](BuildingaSpeechRecognizerinJavaScript.md).
 
 ## Live Demo
-Play with the Live Demo [here](http://dreamdom.github.io/speechrec.html). It has only been tested in Firefox and Chrome.
+Play with the Live Demo [here](https://dreamdom.github.io/speechrec.html). It has only been tested in Firefox and Chrome.
 
 ### Screenshots
 ![Yes No Screenshot](readme-images/screenshot-yes-no.png "Yes No Screenshot")
