@@ -1,12 +1,12 @@
 # Building a Speech Recognizer in JavaScript
 
-This file will go into some details about how the JsSpeechRecognizer was built.
+This document will go into some details about how the JsSpeechRecognizer was built. It is going to cover the key parts of the code, not every single line.
 
 ## 1. Get Access to the Microphone
 
 The first and probably most important step is to get access to the microphone. To do this we use WebRTC functions.
 
-JsSpeechRecognizer uses the adapter.js file from the WebRTC project to accomplish this. https://github.com/webrtc/adapter
+JsSpeechRecognizer uses the adapter.js file from the WebRTC project to accomplish this. Hree is a link to their github repo: https://github.com/webrtc/adapter
 
 ````javascript
 // Request access to the microphone
@@ -77,6 +77,7 @@ this.scriptNode.onaudioprocess = function(audioProcessingEvent) {
         return;
     }
 
+    // Normalize and Group the frequencies
     var numGroups = 25;
     var groupSize = 10;
     var groups = [];

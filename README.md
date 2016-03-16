@@ -17,9 +17,31 @@ The WebRTC adapter javascript is neede to use the JSSpeechRecognizer. It is host
 This file contains all of the specific speech recognizer logic.
 
 ### Detailed Write Up
-I am planning on making a more detailed write up of how it works in the near future.
+For a more detaile write up on [how the JsSpeechRecognizer was built](BuildingaSpeechRecognizer.md)
 
-## Running the Demos
+## Live Demo
+
+Play with the Live Demo here. It has only been tested in Firefox and Chrome.
+
+### Tips for the Live Demo
+
+1. After you have trained new words, make sure you press the "generate model" button.
+2. Try training the word "yes", and then training the word "no". Generate the model and then try testing.
+3. It is recommend that you train and test in a quiet room.
+4. You can (and should) train a word multiple times. This is especially important if you are trying to recognize words that sound very similar such as "no" and "go".
+5. Use the "play" button to hear the audio data that was recorded. You should verify that a recording in the training set is of good quality and is of the correct word.
+6. If a recording is incorrect, of bad quality, or contains too much noise get rid of it with the "delete" button.
+
+### Fun Stuff
+
+* Try training phrases like "find sushi" or "show me coffee in San Francisco"
+* Train and detect laughing or screaming.
+* Use emoticons like 🐔, instead of words.
+* Train the recognizer with one person, and test with another person.
+
+I would love to hear more ideas!
+
+## Running the Demos on Your Own Machine
 The demo speechrec.html lets you train new words and then recognize them.
 
 ### Running in Firefox

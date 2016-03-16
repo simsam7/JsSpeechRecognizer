@@ -72,6 +72,7 @@ function JsSpeechRecognizer() {
         var leftChannel = inputBuffer.getChannelData(0);
         Array.prototype.push.apply(_this.currentRecordingBuffer, new Float32Array(leftChannel));
 
+        // Normalize and Group the frequencies
         var numGroups = 25;
         var groupSize = 10;
         var groups = [];
