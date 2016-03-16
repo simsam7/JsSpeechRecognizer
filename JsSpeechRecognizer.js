@@ -43,7 +43,6 @@ function JsSpeechRecognizer() {
     var _this = this;
     this.scriptNode.onaudioprocess = function(audioProcessingEvent) {
 
-        // Looping var
         var i = 0;
 
         // If we aren't recording, don't do anything
