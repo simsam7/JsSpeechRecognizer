@@ -54,12 +54,20 @@ If the speechrec.html file is opened as a local file (with a file:/// prefix) th
 
 I recommend using a Python SimpleHTTPServer. Open up a terminal, cd to the proper folder you want to host, and run the following command:
 
+Python 2
 ````shell
 python -m SimpleHTTPServer 8000
 ````
 
-Open up a "localhost:8000" in your browser to see the list of files in the folder being shared. For more details see the python documentation.
+Python 3
+````shell
+python -m http.server 8000
+````
+
+Open up "localhost:8000" in your browser to see the list of files in the folder being shared. For more details see the python documentation.
 https://docs.python.org/2/library/simplehttpserver.html
+
+Other alternatives include browser-sync or webpack-dev-server.
 
 For more details about Chrome and webrtc locally, see the following stack overflow question:
 http://stackoverflow.com/questions/14318319/webrtc-browser-doesnt-ask-for-mic-access-permission-for-local-html-file
