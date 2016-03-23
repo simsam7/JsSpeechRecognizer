@@ -16,7 +16,6 @@ function JsSpeechRecognizer() {
     this.currentRecordingBuffer = [];
     this.wordBuffer = [];
     this.modelBuffer = [];
-    this.deleteMap = {};
     this.groupedValues = [];
 
     // The speech recognition model
@@ -76,11 +75,11 @@ function JsSpeechRecognizer() {
         var numGroups = 25;
         var groupSize = 10;
         var groups = [];
-        
+
         for (i = 0; i < numGroups; i++) {
             var peakGroupValue = 0;
             for (var j = 0; j < groupSize; j++) {
-                var curPos = (10 * i) + j;
+                var curPos = (groupSize * i) + j;
 
                 // normalize the value
                 var tempCalc = Math.floor((dataArray[curPos] / max) * 100);
@@ -193,7 +192,7 @@ JsSpeechRecognizer.prototype.playTrainingBuffer = function(index) {
 };
 
 JsSpeechRecognizer.prototype.deleteTrainingBuffer = function(input) {
-    this.deleteMap[input] = true;
+    this.modelBuffer[input] = null;
 };
 
 /**
@@ -214,7 +213,7 @@ JsSpeechRecognizer.prototype.generateModel = function() {
     }
 
     for (i = 0; i < this.modelBuffer.length; i++) {
-        if (!this.deleteMap[i]) {
+        if (this.modelBuffer[i] !== null) {
             key = this.wordBuffer[i];
             this.model[key].push(this.modelBuffer[i]);
         }
