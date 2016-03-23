@@ -272,20 +272,10 @@ JsSpeechRecognizer.prototype.findDistance = function(input, check) {
     var i = 0;
     var distance = 0;
 
-    if (check.length < input.length) {
-        for (i = 0; i < check.length; i++) {
-            distance += Math.abs(check[i] - input[i]);
-        }
-        for (i = check.length; i < input.length; i++) {
-            distance += input[i];
-        }
-    } else {
-        for (i = 0; i < input.length; i++) {
-            distance += Math.abs(check[i] - input[i]);
-        }
-        for (i = input.length; i < check.length; i++) {
-            distance += check[i];
-        }
+    for (i = 0; i < Math.max(input.length, check.length); i++) {
+        var checkVal = check[i] || 0;
+        var inputVal = input[i] || 0;
+        distance += Math.abs(checkVal - inputVal);
     }
 
     return distance;
