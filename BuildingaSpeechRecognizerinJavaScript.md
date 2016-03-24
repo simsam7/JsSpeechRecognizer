@@ -65,14 +65,9 @@ this.scriptNode.onaudioprocess = function(audioProcessingEvent) {
     var dataArray = new Uint8Array(_this.analyser.fftSize);
     _this.analyser.getByteFrequencyData(dataArray);
 
-    // Loop through the array and find the max
-    var max = -1;
-    for (i = 0; i < dataArray.length; i++) {
-        if (dataArray[i] > max) {
-            max = dataArray[i];
-        }
-    }
-
+    // Find the max in the fft array
+    var max = Math.max.apply(Math, dataArray);
+    
     // If the max is zero ignore it.
     if (max === 0) {
         return;
@@ -82,11 +77,11 @@ this.scriptNode.onaudioprocess = function(audioProcessingEvent) {
     var numGroups = 25;
     var groupSize = 10;
     var groups = [];
-    
+
     for (i = 0; i < numGroups; i++) {
         var peakGroupValue = 0;
         for (var j = 0; j < groupSize; j++) {
-            var curPos = (10 * i) + j;
+            var curPos = (groupSize * i) + j;
 
             // normalize the value
             var tempCalc = Math.floor((dataArray[curPos] / max) * 100);
@@ -122,20 +117,10 @@ JsSpeechRecognizer.prototype.findDistance = function(input, check) {
     var i = 0;
     var distance = 0;
 
-    if (check.length < input.length) {
-        for (i = 0; i < check.length; i++) {
-            distance += Math.abs(check[i] - input[i]);
-        }
-        for (i = check.length; i < input.length; i++) {
-            distance += input[i];
-        }
-    } else {
-        for (i = 0; i < input.length; i++) {
-            distance += Math.abs(check[i] - input[i]);
-        }
-        for (i = input.length; i < check.length; i++) {
-            distance += check[i];
-        }
+    for (i = 0; i < Math.max(input.length, check.length); i++) {
+        var checkVal = check[i] || 0;
+        var inputVal = input[i] || 0;
+        distance += Math.abs(checkVal - inputVal);
     }
 
     return distance;

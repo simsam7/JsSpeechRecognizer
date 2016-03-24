@@ -19,7 +19,7 @@ function JsSpeechRecognizer() {
     this.groupedValues = [];
 
     // The speech recognition model
-    var model = {};
+    this.model = {};
 
     // State variables. Initialize to not recording and not doing recognition
     this.isRecording = false;
@@ -178,16 +178,20 @@ JsSpeechRecognizer.prototype.playTrainingBuffer = function(index) {
             nowBuffering[i] = playBuffer[i];
         }
     }
-
-    var source2 = this.audioCtx.createBufferSource();
-    source2.buffer = myArrayBuffer;
-    source2.connect(this.audioCtx.destination);
-    source2.start();
+    
+    this.playMonoAudio(myArrayBuffer);
 
 };
 
 JsSpeechRecognizer.prototype.deleteTrainingBuffer = function(input) {
     this.modelBuffer[input] = null;
+};
+
+JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
+    var playSource = this.audioCtx.createBufferSource();
+    playSource.buffer = playBuffer;
+    playSource.connect(this.audioCtx.destination);
+    playSource.start();
 };
 
 /**
