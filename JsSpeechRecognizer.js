@@ -53,14 +53,9 @@ function JsSpeechRecognizer() {
         var dataArray = new Uint8Array(_this.analyser.fftSize);
         _this.analyser.getByteFrequencyData(dataArray);
 
-        // Loop through the array and find the max
-        var max = -1;
-        for (i = 0; i < dataArray.length; i++) {
-            if (dataArray[i] > max) {
-                max = dataArray[i];
-            }
-        }
-
+        // Find the max in the fft array
+        var max = Math.max.apply(Math, dataArray);
+        
         // If the max is zero ignore it.
         if (max === 0) {
             return;
