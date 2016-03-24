@@ -78,7 +78,7 @@
                 } else {
                     $("#testingStartStopRecordingButton").val("start testing");
                     speechRec.stopRecording();
-                    var result = speechRec.getTopRecognitionHypothesis();
+                    var result = speechRec.getTopRecognitionHypotheses(1);
 
                     $("#testingResultsDiv").html("<h3>" + JSON.stringify(result) + "</h3>");
                 }

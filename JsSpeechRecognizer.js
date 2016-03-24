@@ -220,52 +220,39 @@ JsSpeechRecognizer.prototype.generateModel = function() {
     }
 };
 
-JsSpeechRecognizer.prototype.getTopRecognitionHypothesis = function() {
-    return this.findClosestMatch(this.groupedValues);
+
+JsSpeechRecognizer.prototype.getTopRecognitionHypotheses = function(numResults) {
+    return this.findClosestMatch(this.groupedValues, numResults);
 };
 
 
 // Calculation functions
 
-JsSpeechRecognizer.prototype.findClosestMatch = function(input) {
+JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults) {
 
     var i = 0;
     var key = "";
-
-    var confidences = {};
+    var allResults = [];
 
     // Loop through all the keys in the model
     for (key in this.model) {
-        confidences[key] = [];
         // Loop through all entries for that key
         for (i = 0; i < this.model[key].length; i++) {
 
             var curDistance = this.findDistance(input, this.model[key][i]);
             var curConfidence = this.calcConfidence(curDistance, this.model[key][i]);
 
-            confidences[key].push(curConfidence);
+            var newResult = {};
+            newResult.match = key;
+            newResult.confidence = curConfidence;
+            allResults.push(newResult);
         }
 
     }
 
-    var max = -1;
-    var maxKey = "";
-    var maxKeyIndex = -1;
-    for (key in confidences) {
+    allResults.sort(function(a, b) { return b.confidence - a.confidence; });
 
-        for (i = 0; i < confidences[key].length; i++) {
-            if (max == -1 || confidences[key][i] > max) {
-                max = confidences[key][i];
-                maxKey = key;
-                maxKeyIndex = i;
-            }
-        }
-    }
-
-    var result = {};
-    result[maxKey] = max;
-
-    return result;
+    return allResults.slice(0, numResults);
 };
 
 JsSpeechRecognizer.prototype.findDistance = function(input, check) {
