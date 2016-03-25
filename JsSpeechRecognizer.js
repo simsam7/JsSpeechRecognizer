@@ -20,6 +20,9 @@ function JsSpeechRecognizer() {
 
     // The speech recognition model
     this.model = {};
+    
+    // The average model contains one average entry for each key
+    this.averageModel = {};
 
     // State variables. Initialize to not recording and not doing recognition
     this.isRecording = false;
@@ -34,6 +37,11 @@ function JsSpeechRecognizer() {
     this.analyser.maxDecibels = -10;
     this.analyser.smoothingTimeConstant = 0;
     this.analyser.fftSize = 1024;
+
+    // Parameters for the model calculation
+    this.numGroups = 25;
+    this.groupSize = 10;
+    this.minPower = 0.01;
 
     // Create the scriptNode
     this.scriptNode = this.audioCtx.createScriptProcessor(this.analyser.fftSize, 1, 1);
@@ -55,26 +63,38 @@ function JsSpeechRecognizer() {
 
         // Find the max in the fft array
         var max = Math.max.apply(Math, dataArray);
-        
+
         // If the max is zero ignore it.
         if (max === 0) {
             return;
         }
 
-        // Save the data for playback. For simplicity just take one channel
+        // Get the audio data. For simplicity just take one channel
         var inputBuffer = audioProcessingEvent.inputBuffer;
         var leftChannel = inputBuffer.getChannelData(0);
-        Array.prototype.push.apply(_this.currentRecordingBuffer, new Float32Array(leftChannel));
+
+        // Calculate the power
+        var curFrame = new Float32Array(leftChannel);
+        var power = 0;
+        for (i = 0; i < curFrame.length; i++) {
+            power += curFrame[i] * curFrame[i];
+        }
+
+        // Check for the proper power level
+        if (power < _this.minPower) {
+            return;
+        }
+
+        // Save the data for playback.
+        Array.prototype.push.apply(_this.currentRecordingBuffer, curFrame);
 
         // Normalize and Group the frequencies
-        var numGroups = 25;
-        var groupSize = 10;
         var groups = [];
 
-        for (i = 0; i < numGroups; i++) {
+        for (i = 0; i < _this.numGroups; i++) {
             var peakGroupValue = 0;
-            for (var j = 0; j < groupSize; j++) {
-                var curPos = (groupSize * i) + j;
+            for (var j = 0; j < _this.groupSize; j++) {
+                var curPos = (_this.groupSize * i) + j;
 
                 // normalize the value
                 var tempCalc = Math.floor((dataArray[curPos] / max) * 100);
@@ -178,7 +198,7 @@ JsSpeechRecognizer.prototype.playTrainingBuffer = function(index) {
             nowBuffering[i] = playBuffer[i];
         }
     }
-    
+
     this.playMonoAudio(myArrayBuffer);
 
 };
@@ -217,29 +237,46 @@ JsSpeechRecognizer.prototype.generateModel = function() {
             this.model[key].push(this.modelBuffer[i]);
         }
     }
+    
+    // Average Model
+    // Holds one entry for each key. That entry is the average of all the entries in the model
+    this.averageModel = {};
+    for (key in this.model) {
+        var average = [];
+        for (i = 0; i < this.model[key].length; i++) {
+            for(var j = 0; j < this.model[key][i].length; j++) {
+                average[j] = (average[j] || 0) + (this.model[key][i][j] / this.model[key].length);
+            }
+        }
+        
+        this.averageModel[key] = [];
+        this.averageModel[key].push(average);
+    }
+    
 };
 
 
 JsSpeechRecognizer.prototype.getTopRecognitionHypotheses = function(numResults) {
-    return this.findClosestMatch(this.groupedValues, numResults);
+    // use the model or the averageModel to find the closest match
+    return this.findClosestMatch(this.groupedValues, numResults, this.averageModel);
 };
 
 
 // Calculation functions
 
-JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults) {
+JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, speechModel) {
 
     var i = 0;
     var key = "";
     var allResults = [];
 
     // Loop through all the keys in the model
-    for (key in this.model) {
+    for (key in speechModel) {
         // Loop through all entries for that key
-        for (i = 0; i < this.model[key].length; i++) {
+        for (i = 0; i < speechModel[key].length; i++) {
 
-            var curDistance = this.findDistance(input, this.model[key][i]);
-            var curConfidence = this.calcConfidence(curDistance, this.model[key][i]);
+            var curDistance = this.findDistance(input, speechModel[key][i]);
+            var curConfidence = this.calcConfidence(curDistance, speechModel[key][i]);
 
             var newResult = {};
             newResult.match = key;
