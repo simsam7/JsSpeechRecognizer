@@ -79,8 +79,13 @@
                     $("#testingStartStopRecordingButton").val("start testing");
                     speechRec.stopRecording();
                     var result = speechRec.getTopRecognitionHypotheses(1);
+                    
+                    // Format and display results
+                    for(var i = 0; i < result.length; i++) {
+                        result[i].confidence = result[i].confidence.toFixed(3);
+                    }
 
-                    $("#testingResultsDiv").html("<h3>" + JSON.stringify(result) + "</h3>");
+                    $("#testingResultsDiv").html("<h3>" + JSON.stringify(result, null, 2) + "</h3>");
                 }
             });
 
