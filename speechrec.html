@@ -27,7 +27,7 @@
         $(document).ready(function() {
             // Add the handler for the button
             $("#startStopRecordingButton").click(function() {
-                if (!speechRec.isRecording) {
+                if (!speechRec.isRecording()) {
                     var word = $("#currentWordText").val();
                     speechRec.startTrainingRecording(word);
 
@@ -72,7 +72,7 @@
             });
 
             $("#testingStartStopRecordingButton").click(function() {
-                if (!speechRec.isRecording) {
+                if (!speechRec.isRecording()) {
                     $("#testingStartStopRecordingButton").val("stop testing");
                     speechRec.startRecognitionRecording();
                 } else {

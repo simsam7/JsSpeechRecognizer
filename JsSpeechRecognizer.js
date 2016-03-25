@@ -11,6 +11,10 @@
 
 function JsSpeechRecognizer() {
 
+    // Constants
+    this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3 };
+    Object.freeze(this.RecordingEnum);
+
     // Variables for recording data
     this.recordingBufferArray = [];
     this.currentRecordingBuffer = [];
@@ -20,13 +24,12 @@ function JsSpeechRecognizer() {
 
     // The speech recognition model
     this.model = {};
-    
+
     // The average model contains one average entry for each key
     this.averageModel = {};
 
-    // State variables. Initialize to not recording and not doing recognition
-    this.isRecording = false;
-    this.doRecognition = false;
+    // State variable. Initialize to not recording
+    this.recordingState = this.RecordingEnum.NOT_RECORDING;
 
     // Get an audio context
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -53,7 +56,7 @@ function JsSpeechRecognizer() {
         var i = 0;
 
         // If we aren't recording, don't do anything
-        if (!_this.isRecording) {
+        if (_this.recordingState === _this.RecordingEnum.NOT_RECORDING) {
             return;
         }
 
@@ -107,8 +110,15 @@ function JsSpeechRecognizer() {
             }
             groups.push(peakGroupValue);
         }
-        _this.groupedValues.push(groups);
-    };
+
+        // Depending on the state, handle the data differently
+        if (_this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING) {
+            // Perform keyword spotting...
+        } else {
+            _this.groupedValues.push(groups);
+        }
+
+    };  // End of onaudioprocess
 
 }
 
@@ -138,10 +148,20 @@ JsSpeechRecognizer.prototype.openMic = function() {
     }
 };
 
+/**
+ * Returns false if the recognizer is not recording. True otherwise.
+ */
+JsSpeechRecognizer.prototype.isRecording = function() {
+    if (this.recordingState === this.RecordingEnum.NOT_RECORDING) {
+        return false;
+    }
+
+    return true;
+};
+
 JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
 
-    this.doRecognition = false;
-    this.isRecording = true;
+    this.recordingState = this.RecordingEnum.TRAINING;
 
     // Create a new current recording buffer
     this.currentRecordingBuffer = [];
@@ -153,8 +173,7 @@ JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
 
 JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
 
-    this.doRecognition = true;
-    this.isRecording = true;
+    this.recordingState = this.RecordingEnum.RECOGNITION;
 
     // Create a new current recording buffer
     this.currentRecordingBuffer = [];
@@ -165,18 +184,15 @@ JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
 
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
-    this.isRecording = false;
     this.groupedValues = [].concat.apply([], this.groupedValues);
 
-    // If we are doing recognition we don't want to save to the model
-    if (this.doRecognition) {
-        return;
+    // If we are training we want to save to the recongition model
+    if (this.recordingState === this.RecordingEnum.TRAINING) {
+        this.recordingBufferArray.push(this.currentRecordingBuffer.slice(0));
+        this.modelBuffer.push(this.groupedValues.slice(0));
     }
 
-    // This is training
-    this.recordingBufferArray.push(this.currentRecordingBuffer.slice(0));
-    // Save the recognition model
-    this.modelBuffer.push(this.groupedValues.slice(0));
+    this.recordingState = this.RecordingEnum.NOT_RECORDING;
 
     return this.recordingBufferArray.length;
 };
@@ -215,7 +231,7 @@ JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
 };
 
 /**
- * Method to generate the new speech recognition model from the  training data.
+ * Method to generate the new speech recognition model from the training data.
  */
 JsSpeechRecognizer.prototype.generateModel = function() {
 
@@ -237,22 +253,22 @@ JsSpeechRecognizer.prototype.generateModel = function() {
             this.model[key].push(this.modelBuffer[i]);
         }
     }
-    
+
     // Average Model
     // Holds one entry for each key. That entry is the average of all the entries in the model
     this.averageModel = {};
     for (key in this.model) {
         var average = [];
         for (i = 0; i < this.model[key].length; i++) {
-            for(var j = 0; j < this.model[key][i].length; j++) {
+            for (var j = 0; j < this.model[key][i].length; j++) {
                 average[j] = (average[j] || 0) + (this.model[key][i][j] / this.model[key].length);
             }
         }
-        
+
         this.averageModel[key] = [];
         this.averageModel[key].push(average);
     }
-    
+
 };
 
 
