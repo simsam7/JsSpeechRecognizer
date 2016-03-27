@@ -14,6 +14,8 @@ function JsSpeechRecognizer() {
     // Constants
     this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3 };
     Object.freeze(this.RecordingEnum);
+    this.RecognitionModel = { "TRAINED": 0, "AVERAGE": 1, "COMPOSITE": 2 };
+    Object.freeze(this.RecognitionModel);
 
     // Variables for recording data
     this.recordingBufferArray = [];
@@ -30,6 +32,8 @@ function JsSpeechRecognizer() {
 
     // State variable. Initialize to not recording
     this.recordingState = this.RecordingEnum.NOT_RECORDING;
+    // Default to using the composite recognition model
+    this.useRecognitionModel = this.RecognitionModel.COMPOSITE;
 
     // Get an audio context
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -273,8 +277,21 @@ JsSpeechRecognizer.prototype.generateModel = function() {
 
 
 JsSpeechRecognizer.prototype.getTopRecognitionHypotheses = function(numResults) {
-    // use the model or the averageModel to find the closest match
-    return this.findClosestMatch(this.groupedValues, numResults, this.averageModel);
+
+    if (this.useRecognitionModel === this.RecognitionModel.AVERAGE) {
+        return this.findClosestMatch(this.groupedValues, numResults, this.averageModel);
+    } else if (this.useRecognitionModel === this.RecognitionModel.TRAINED) {
+        return this.findClosestMatch(this.groupedValues, numResults, this.model);
+    } else {
+        // For the composite model, combine the trained and average results and sort them
+        var results = this.findClosestMatch(this.groupedValues, -1, this.model);
+        var resultsAverage = this.findClosestMatch(this.groupedValues, -1, this.averageModel);
+
+        var allResults = results.concat(resultsAverage);
+        allResults.sort(function(a, b) { return b.confidence - a.confidence; });
+
+        return allResults.slice(0, numResults);
+    }
 };
 
 
@@ -303,6 +320,10 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, spee
     }
 
     allResults.sort(function(a, b) { return b.confidence - a.confidence; });
+
+    if (numResults === -1) {
+        return allResults;
+    }
 
     return allResults.slice(0, numResults);
 };
