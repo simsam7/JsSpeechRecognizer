@@ -205,10 +205,17 @@ JsSpeechRecognizer.prototype.stopRecording = function() {
  * Function will play back the recorded audio for a specific index that is part of the training data.
  */
 JsSpeechRecognizer.prototype.playTrainingBuffer = function(index) {
+    this.playMonoAudio(this.recordingBufferArray[index]);
+};
+
+JsSpeechRecognizer.prototype.deleteTrainingBuffer = function(input) {
+    this.modelBuffer[input] = null;
+};
+
+JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
 
     // Mono
     var channels = 1;
-    var playBuffer = this.recordingBufferArray[index];
     var frameCount = playBuffer.length;
     var myArrayBuffer = this.audioCtx.createBuffer(channels, frameCount, this.audioCtx.sampleRate);
 
@@ -219,17 +226,8 @@ JsSpeechRecognizer.prototype.playTrainingBuffer = function(index) {
         }
     }
 
-    this.playMonoAudio(myArrayBuffer);
-
-};
-
-JsSpeechRecognizer.prototype.deleteTrainingBuffer = function(input) {
-    this.modelBuffer[input] = null;
-};
-
-JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
     var playSource = this.audioCtx.createBufferSource();
-    playSource.buffer = playBuffer;
+    playSource.buffer = myArrayBuffer;
     playSource.connect(this.audioCtx.destination);
     playSource.start();
 };
