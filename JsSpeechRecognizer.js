@@ -23,6 +23,10 @@ function JsSpeechRecognizer() {
     this.wordBuffer = [];
     this.modelBuffer = [];
     this.groupedValues = [];
+    
+    // Keyword spotting variables for recording data
+    this.keywordSpottingGroupBuffer = [];
+    this.keywordSpottingRecordingBuffer = [];
 
     // The speech recognition model
     this.model = {};
@@ -49,6 +53,11 @@ function JsSpeechRecognizer() {
     this.numGroups = 25;
     this.groupSize = 10;
     this.minPower = 0.01;
+    
+    // Keyword spotting parameters
+    this.keywordSpottingMinConfidence = 0.55;
+    this.keywordSpottingBufferCount = 80;
+    this.keywordSpottedCallback = null;
 
     // Create the scriptNode
     this.scriptNode = this.audioCtx.createScriptProcessor(this.analyser.fftSize, 1, 1);
@@ -117,7 +126,7 @@ function JsSpeechRecognizer() {
 
         // Depending on the state, handle the data differently
         if (_this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING) {
-            // Perform keyword spotting...
+            _this.keywordSpottingProcessFrame(groups, curFrame);
         } else {
             _this.groupedValues.push(groups);
         }
@@ -290,6 +299,15 @@ JsSpeechRecognizer.prototype.getTopRecognitionHypotheses = function(numResults) 
 
         return allResults.slice(0, numResults);
     }
+};
+
+/**
+ * Function called to process a new frame of data while in recording state KEYWORD_SPOTTING.
+ *  groups - the group data for the frame
+ *  curFrame - the raw audio data for the frame
+ */
+JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curFrame) {
+
 };
 
 
