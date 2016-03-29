@@ -195,6 +195,16 @@ JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
     this.groupedValues = [];
 };
 
+JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
+    this.recordingState = this.RecordingEnum.KEYWORD_SPOTTING;
+    
+    // Create a new current recording buffer
+    this.currentRecordingBuffer = [];
+
+    // Create a new groupedValues buffer
+    this.groupedValues = [];
+};
+
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.groupedValues = [].concat.apply([], this.groupedValues);
