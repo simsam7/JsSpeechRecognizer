@@ -55,8 +55,10 @@ function JsSpeechRecognizer() {
     this.minPower = 0.01;
 
     // Keyword spotting parameters
-    this.keywordSpottingMinConfidence = 0.55;
+    this.keywordSpottingMinConfidence = 0.65;
     this.keywordSpottingBufferCount = 80;
+    this.keywordSpottingLastVoiceActivity = 0;
+    this.keywordSpottingMaxVoiceActivityGap = 300;
     this.keywordSpottedCallback = null;
 
     // Create the scriptNode
@@ -126,6 +128,15 @@ function JsSpeechRecognizer() {
 
         // Depending on the state, handle the data differently
         if (_this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING) {
+
+            // Check if we should reset the buffers
+            var now = new Date().getTime();
+            if (now - _this.keywordSpottingLastVoiceActivity > _this.keywordSpottingMaxVoiceActivityGap) {
+                _this.keywordSpottingGroupBuffer = [];
+                _this.keywordSpottingRecordingBuffer = [];
+            }
+            _this.keywordSpottingLastVoiceActivity = now;
+
             _this.keywordSpottingProcessFrame(groups, curFrame);
         } else {
             _this.groupedValues.push(groups);
@@ -323,7 +334,6 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     var allResults = [];
     var recordingLength;
 
-
     // Append to the keywordspotting buffer
     this.keywordSpottingGroupBuffer.push(groups);
     this.keywordSpottingGroupBuffer = [].concat.apply([], this.keywordSpottingGroupBuffer);
@@ -361,9 +371,13 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 
         // Save the audio
         recordingLength = (allResults[0].frameCount / this.numGroups) * this.analyser.fftSize;
+
+        if (recordingLength > this.keywordSpottingRecordingBuffer.length) {
+            recordingLength = this.keywordSpottingRecordingBuffer.length;
+        }
+
         allResults[0].audioBuffer = this.keywordSpottingRecordingBuffer.slice(this.keywordSpottingRecordingBuffer.length - recordingLength, this.keywordSpottingRecordingBuffer.length);
 
-        // call the callback
         if (this.keywordSpottedCallback !== undefined && this.keywordSpottedCallback !== null) {
             this.keywordSpottedCallback(allResults[0]);
         }
