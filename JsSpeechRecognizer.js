@@ -114,8 +114,8 @@ function JsSpeechRecognizer() {
             for (var j = 0; j < _this.groupSize; j++) {
                 var curPos = (_this.groupSize * i) + j;
 
-                // normalize the value
-                var tempCalc = Math.floor((dataArray[curPos] / max) * 100);
+                // now normalizing after the recording has finished
+                var tempCalc = dataArray[curPos];
 
                 // Keep the peak normalized value for this group
                 if (tempCalc > peakGroupValue) {
@@ -219,6 +219,9 @@ JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.groupedValues = [].concat.apply([], this.groupedValues);
+    
+    // normalize!
+    this.normalizeInput(this.groupedValues);
 
     // If we are training we want to save to the recongition model
     if (this.recordingState === this.RecordingEnum.TRAINING) {
@@ -333,6 +336,7 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     var key;
     var allResults = [];
     var recordingLength;
+    var workingGroupBuffer = [];
 
     // Append to the keywordspotting buffer
     this.keywordSpottingGroupBuffer.push(groups);
@@ -352,15 +356,19 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     if (this.keywordSpottingRecordingBuffer.length > computedLength) {
         this.keywordSpottingRecordingBuffer = this.keywordSpottingRecordingBuffer.slice(this.keywordSpottingRecordingBuffer.length - computedLength, this.keywordSpottingRecordingBuffer.length);
     }
+    
+    // Copy buffer, and normalize it, and use it to find the closest match
+    workingGroupBuffer = this.keywordSpottingGroupBuffer.slice(0);
+    this.normalizeInput(workingGroupBuffer);
 
     if (this.useRecognitionModel === this.RecognitionModel.AVERAGE) {
-        allResults = this.findClosestMatch(this.keywordSpottingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
+        allResults = this.findClosestMatch(workingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
     } else if (this.useRecognitionModel === this.RecognitionModel.TRAINED) {
-        allResults = this.findClosestMatch(this.keywordSpottingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
+        allResults = this.findClosestMatch(workingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
     } else {
         // Using the composite model. Combine the trained and the average
-        var results = this.findClosestMatch(this.keywordSpottingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
-        var resultsAverage = this.findClosestMatch(this.keywordSpottingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
+        var results = this.findClosestMatch(workingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
+        var resultsAverage = this.findClosestMatch(workingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
 
         allResults = results.concat(resultsAverage);
         allResults.sort(function(a, b) { return b.confidence - a.confidence; });
@@ -378,19 +386,29 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 
         allResults[0].audioBuffer = this.keywordSpottingRecordingBuffer.slice(this.keywordSpottingRecordingBuffer.length - recordingLength, this.keywordSpottingRecordingBuffer.length);
 
+        // Reset the buffers
+        this.keywordSpottingGroupBuffer = [];
+        this.keywordSpottingRecordingBuffer = [];
+
         if (this.keywordSpottedCallback !== undefined && this.keywordSpottedCallback !== null) {
             this.keywordSpottedCallback(allResults[0]);
         }
 
-        // Reset the buffers
-        this.keywordSpottingGroupBuffer = [];
-        this.keywordSpottingRecordingBuffer = [];
     }
 
 };
 
 
 // Calculation functions
+
+JsSpeechRecognizer.prototype.normalizeInput = function(input) {
+    // Find the max in the fft array
+    var max = Math.max.apply(Math, input);
+
+    for (var i = 0; i < input.length; i++) {
+        input[i] = Math.floor((input[i] / max) * 100);
+    }
+};
 
 JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, speechModel, findDistanceFunction) {
 
