@@ -55,7 +55,7 @@ function JsSpeechRecognizer() {
     this.minPower = 0.01;
 
     // Keyword spotting parameters
-    this.keywordSpottingMinConfidence = 0.65;
+    this.keywordSpottingMinConfidence = 0.50;
     this.keywordSpottingBufferCount = 80;
     this.keywordSpottingLastVoiceActivity = 0;
     this.keywordSpottingMaxVoiceActivityGap = 300;
@@ -219,7 +219,7 @@ JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.groupedValues = [].concat.apply([], this.groupedValues);
-    
+
     // normalize!
     this.normalizeInput(this.groupedValues);
 
@@ -272,6 +272,8 @@ JsSpeechRecognizer.prototype.generateModel = function() {
 
     // Local vars
     var i = 0;
+    var j = 0;
+    var k = 0;
     var key = "";
 
     // Reset the model
@@ -295,13 +297,31 @@ JsSpeechRecognizer.prototype.generateModel = function() {
     for (key in this.model) {
         var average = [];
         for (i = 0; i < this.model[key].length; i++) {
-            for (var j = 0; j < this.model[key][i].length; j++) {
+            for (j = 0; j < this.model[key][i].length; j++) {
                 average[j] = (average[j] || 0) + (this.model[key][i][j] / this.model[key].length);
             }
         }
 
         this.averageModel[key] = [];
         this.averageModel[key].push(average);
+    }
+
+    // Interpolation - Take the average of each pair of entries for a key and 
+    // add it to the average model
+    for (key in this.model) {
+
+        var averageInterpolation = [];
+        for (k = 0; k < this.model[key].length; k++) {
+            for (i = k + 1; i < this.model[key].length; i++) {
+
+                averageInterpolation = [];
+                for (j = 0; j < Math.max(this.model[key][k].length, this.model[key][i].length); j++) {
+                    averageInterpolation[j] = (this.model[key][k][j] + this.model[key][i][j]) / 2;
+                }
+
+                this.averageModel[key].push(averageInterpolation);
+            }
+        }
     }
 
 };
@@ -356,7 +376,7 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     if (this.keywordSpottingRecordingBuffer.length > computedLength) {
         this.keywordSpottingRecordingBuffer = this.keywordSpottingRecordingBuffer.slice(this.keywordSpottingRecordingBuffer.length - computedLength, this.keywordSpottingRecordingBuffer.length);
     }
-    
+
     // Copy buffer, and normalize it, and use it to find the closest match
     workingGroupBuffer = this.keywordSpottingGroupBuffer.slice(0);
     this.normalizeInput(workingGroupBuffer);
