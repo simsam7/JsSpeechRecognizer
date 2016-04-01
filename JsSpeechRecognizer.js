@@ -316,7 +316,9 @@ JsSpeechRecognizer.prototype.generateModel = function() {
 
                 averageInterpolation = [];
                 for (j = 0; j < Math.max(this.model[key][k].length, this.model[key][i].length); j++) {
-                    averageInterpolation[j] = (this.model[key][k][j] + this.model[key][i][j]) / 2;
+                    var entryOne = this.model[key][k][j] || 0;
+                    var entryTwo = this.model[key][i][j] || 0;
+                    averageInterpolation[j] = (entryOne + entryTwo) / 2;
                 }
 
                 this.averageModel[key].push(averageInterpolation);
