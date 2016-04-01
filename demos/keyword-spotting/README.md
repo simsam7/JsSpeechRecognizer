@@ -24,3 +24,4 @@ Here is a [short video](https://vimeo.com/161142124) that shows how to run the d
 3. Try varying the amounts of training entries.
 4. Clone the code, and then in file keyword-spotting.html try changing the group size and the number of groups.
 5. Experiment with different words and phrases. Some shorter words may generate a lot of false positives. Some longer words or phrases are more unique sounding.
+6. Train and test in a quiet room. The recognizer does not currently handle background noise well.
