@@ -47,7 +47,7 @@ Play with the Live Demo [here](https://dreamdom.github.io/speechrec.html). It ha
 * Train the recognizer with one person, and test with another person.
 
 ## More Demos
-Find more demos [here](tree/master/demos).
+Find information about more demos [here](https://github.com/dreamdom/JsSpeechRecognizer/tree/master/demos).
 
 I would love to hear more ideas!
 
