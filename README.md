@@ -1,6 +1,11 @@
 # JsSpeechRecognizer
 JavaScript Speech Recognizer
 
+## Demos
+[Speech Recognition Demo](https://dreamdom.github.io/speechrec.html)
+
+[Keyword Spotting Demo](https://dreamdom.github.io/demos/keyword-spotting/keyword-spotting.html)
+
 ## What is It?
 JsSpeechRecognizer is a javascript based speech recognizer. It allows you to train words or phrases to be recognized, and then record new audio to match to these words or phrases.
 
@@ -40,6 +45,9 @@ Play with the Live Demo [here](https://dreamdom.github.io/speechrec.html). It ha
 * Train and detect laughing or screaming.
 * Use emoticons like 🐔, instead of words.
 * Train the recognizer with one person, and test with another person.
+
+## More Demos
+Find more demos [here](tree/master/demos).
 
 I would love to hear more ideas!
 
