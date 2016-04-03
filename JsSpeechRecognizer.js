@@ -23,8 +23,6 @@ function JsSpeechRecognizer() {
     this.wordBuffer = [];
     this.modelBuffer = [];
     this.groupedValues = [];
-
-    // Keyword spotting variables for recording data
     this.keywordSpottingGroupBuffer = [];
     this.keywordSpottingRecordingBuffer = [];
 
@@ -34,9 +32,7 @@ function JsSpeechRecognizer() {
     // The average model contains one average entry for each key
     this.averageModel = {};
 
-    // State variable. Initialize to not recording
     this.recordingState = this.RecordingEnum.NOT_RECORDING;
-    // Default to using the composite recognition model
     this.useRecognitionModel = this.RecognitionModel.COMPOSITE;
 
     // Get an audio context
@@ -63,10 +59,13 @@ function JsSpeechRecognizer() {
 
     // Create the scriptNode
     this.scriptNode = this.audioCtx.createScriptProcessor(this.analyser.fftSize, 1, 1);
+    this.scriptNode.onaudioprocess = this.generateOnAudioProcess();
 
-    // Function for script node to process
+}
+
+JsSpeechRecognizer.prototype.generateOnAudioProcess = function() {
     var _this = this;
-    this.scriptNode.onaudioprocess = function(audioProcessingEvent) {
+    return function(audioProcessingEvent) {
 
         var i = 0;
 
@@ -114,12 +113,9 @@ function JsSpeechRecognizer() {
             for (var j = 0; j < _this.groupSize; j++) {
                 var curPos = (_this.groupSize * i) + j;
 
-                // now normalizing after the recording has finished
-                var tempCalc = dataArray[curPos];
-
                 // Keep the peak normalized value for this group
-                if (tempCalc > peakGroupValue) {
-                    peakGroupValue = tempCalc;
+                if (dataArray[curPos] > peakGroupValue) {
+                    peakGroupValue = dataArray[curPos];
                 }
 
             }
@@ -141,12 +137,11 @@ function JsSpeechRecognizer() {
             _this.groupedValues.push(groups);
         }
 
-    };  // End of onaudioprocess
-
-}
+    };
+};
 
 JsSpeechRecognizer.prototype.openMic = function() {
-    // Request access to the microphone
+
     var constraints = {
         "audio": true
     };
@@ -183,8 +178,8 @@ JsSpeechRecognizer.prototype.isRecording = function() {
 };
 
 JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
-    this.recordingState = this.RecordingEnum.TRAINING;
     this.resetBuffers();
+    this.recordingState = this.RecordingEnum.TRAINING;
     this.wordBuffer.push(curWord);
 };
 
@@ -201,7 +196,6 @@ JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.groupedValues = [].concat.apply([], this.groupedValues);
-
     this.normalizeInput(this.groupedValues);
 
     // If we are training we want to save to the recongition model buffer
