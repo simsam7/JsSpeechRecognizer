@@ -265,9 +265,9 @@ JsSpeechRecognizer.prototype.generateModel = function() {
             this.model[key].push(this.modelBuffer[i]);
         }
     }
-    
+
     // If we are only using the trained entries, no need to anything else
-    if(this.useRecognitionModel === this.RecognitionModel.TRAINED) {
+    if (this.useRecognitionModel === this.RecognitionModel.TRAINED) {
         return;
     }
 
@@ -309,7 +309,7 @@ JsSpeechRecognizer.prototype.generateModel = function() {
         this.model = averageModel;
     } else if (this.useRecognitionModel === this.RecognitionModel.COMPOSITE) {
         // Merge the average model into the model
-        for(key in this.model) {
+        for (key in this.model) {
             this.model[key] = this.model[key].concat(averageModel[key]);
         }
     }
@@ -382,6 +382,12 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 
 // Calculation functions
 
+/**
+ * Normalizes an input array to a scale from 0 to 100.
+ * 
+ * @param {Array} input
+ * @private
+ */
 JsSpeechRecognizer.prototype.normalizeInput = function(input) {
     // Find the max in the fft array
     var max = Math.max.apply(Math, input);
@@ -391,13 +397,23 @@ JsSpeechRecognizer.prototype.normalizeInput = function(input) {
     }
 };
 
+/**
+ * Finds the closest matches for an input, for a specified model.
+ * Uses specified findDistance function, or a default one.
+ * 
+ * @param {Array} input
+ * @param {Number} numResults
+ * @param {Object} speechModel
+ * @param {Function} findDistance
+ * @return {Array}
+ */
 JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, speechModel, findDistanceFunction) {
 
     var i = 0;
     var key = "";
     var allResults = [];
 
-    // If not findDistance function is defined, used the default
+    // If no findDistance function is defined, use the default
     if (findDistanceFunction === undefined) {
         findDistanceFunction = this.findDistanceFunction;
     }
@@ -428,39 +444,64 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, spee
     return allResults.slice(0, numResults);
 };
 
-JsSpeechRecognizer.prototype.findDistance = function(input, check) {
+/**
+ * Computes the sum of differances between an input and a modelEntry.
+ * 
+ * @param {Array} input
+ * @param {Array} modelEntry
+ * @return {Number}
+ * @private
+ */
+JsSpeechRecognizer.prototype.findDistance = function(input, modelEntry) {
     var i = 0;
     var distance = 0;
 
-    for (i = 0; i < Math.max(input.length, check.length); i++) {
-        var checkVal = check[i] || 0;
+    for (i = 0; i < Math.max(input.length, modelEntry.length); i++) {
+        var modelVal = modelEntry[i] || 0;
         var inputVal = input[i] || 0;
-        distance += Math.abs(checkVal - inputVal);
+        distance += Math.abs(modelVal - inputVal);
     }
 
     return distance;
 };
 
-JsSpeechRecognizer.prototype.findDistanceForKeywordSpotting = function(input, check) {
+/**
+ * Calculates the keyword spotting distance an input is from a model entry.
+ * 
+ * @param {Array} input
+ * @param {Array} modelEntry
+ * @return {Number}
+ * @private
+ */
+JsSpeechRecognizer.prototype.findDistanceForKeywordSpotting = function(input, modelEntry) {
     var i = 0;
     var distance = 0;
 
-    // For keyword spotting we check from the end of the check array, and only the check array length
-    for (i = 0; i < check.length; i++) {
-        var checkVal = check[check.length - i] || 0;
+    // Compare from the end of the input, for modelEntry.length entries
+    for (i = 1; i <= modelEntry.length; i++) {
+        var modelVal = modelEntry[modelEntry.length - i] || 0;
         var inputVal = input[input.length - i] || 0;
-        distance += Math.abs(checkVal - inputVal);
+        distance += Math.abs(modelVal - inputVal);
     }
 
     return distance;
 };
 
-JsSpeechRecognizer.prototype.calcConfidence = function(distance, matchArray) {
+/**
+ * Calculates a confidence value based on the distance form a model entry.
+ * Max confidence is 1, min is negative infinity.
+ * 
+ * @param {Number} distance
+ * @param {Array} modelEntry
+ * @return {Number}
+ * @private
+ */
+JsSpeechRecognizer.prototype.calcConfidence = function(distance, modelEntry) {
     var sum = 0;
     var i = 0;
 
-    for (i = 0; i < matchArray.length; i++) {
-        sum += matchArray[i];
+    for (i = 0; i < modelEntry.length; i++) {
+        sum += modelEntry[i];
     }
 
     return (1 - (distance / sum));
