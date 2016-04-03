@@ -132,8 +132,7 @@ function JsSpeechRecognizer() {
             // Check if we should reset the buffers
             var now = new Date().getTime();
             if (now - _this.keywordSpottingLastVoiceActivity > _this.keywordSpottingMaxVoiceActivityGap) {
-                _this.keywordSpottingGroupBuffer = [];
-                _this.keywordSpottingRecordingBuffer = [];
+                _this.resetBuffers();
             }
             _this.keywordSpottingLastVoiceActivity = now;
 
@@ -184,46 +183,28 @@ JsSpeechRecognizer.prototype.isRecording = function() {
 };
 
 JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
-
     this.recordingState = this.RecordingEnum.TRAINING;
-
-    // Create a new current recording buffer
-    this.currentRecordingBuffer = [];
-
-    // Create a new groupedValues buffer
-    this.groupedValues = [];
+    this.resetBuffers();
     this.wordBuffer.push(curWord);
 };
 
 JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
-
+    this.resetBuffers();
     this.recordingState = this.RecordingEnum.RECOGNITION;
-
-    // Create a new current recording buffer
-    this.currentRecordingBuffer = [];
-
-    // Create a new groupedValues buffer
-    this.groupedValues = [];
 };
 
 JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
+    this.resetBuffers();
     this.recordingState = this.RecordingEnum.KEYWORD_SPOTTING;
-
-    // Create a new current recording buffer
-    this.currentRecordingBuffer = [];
-
-    // Create a new groupedValues buffer
-    this.groupedValues = [];
 };
 
 JsSpeechRecognizer.prototype.stopRecording = function() {
 
     this.groupedValues = [].concat.apply([], this.groupedValues);
 
-    // normalize!
     this.normalizeInput(this.groupedValues);
 
-    // If we are training we want to save to the recongition model
+    // If we are training we want to save to the recongition model buffer
     if (this.recordingState === this.RecordingEnum.TRAINING) {
         this.recordingBufferArray.push(this.currentRecordingBuffer.slice(0));
         this.modelBuffer.push(this.groupedValues.slice(0));
@@ -245,9 +226,16 @@ JsSpeechRecognizer.prototype.deleteTrainingBuffer = function(input) {
     this.modelBuffer[input] = null;
 };
 
+JsSpeechRecognizer.prototype.resetBuffers = function() {
+    this.currentRecordingBuffer = [];
+    this.groupedValues = [];
+
+    this.keywordSpottingGroupBuffer = [];
+    this.keywordSpottingRecordingBuffer = [];
+};
+
 JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
 
-    // Mono
     var channels = 1;
     var frameCount = playBuffer.length;
     var myArrayBuffer = this.audioCtx.createBuffer(channels, frameCount, this.audioCtx.sampleRate);
@@ -270,7 +258,6 @@ JsSpeechRecognizer.prototype.playMonoAudio = function(playBuffer) {
  */
 JsSpeechRecognizer.prototype.generateModel = function() {
 
-    // Local vars
     var i = 0;
     var j = 0;
     var k = 0;
@@ -408,10 +395,7 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 
         allResults[0].audioBuffer = this.keywordSpottingRecordingBuffer.slice(this.keywordSpottingRecordingBuffer.length - recordingLength, this.keywordSpottingRecordingBuffer.length);
 
-        // Reset the buffers
-        this.keywordSpottingGroupBuffer = [];
-        this.keywordSpottingRecordingBuffer = [];
-
+        this.resetBuffers();
         if (this.keywordSpottedCallback !== undefined && this.keywordSpottedCallback !== null) {
             this.keywordSpottedCallback(allResults[0]);
         }
@@ -506,4 +490,3 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, matchArray) {
 
     return (1 - (distance / sum));
 };
-
