@@ -29,9 +29,6 @@ function JsSpeechRecognizer() {
     // The speech recognition model
     this.model = {};
 
-    // The average model contains one average entry for each key
-    this.averageModel = {};
-
     this.recordingState = this.RecordingEnum.NOT_RECORDING;
     this.useRecognitionModel = this.RecognitionModel.COMPOSITE;
 
@@ -170,11 +167,7 @@ JsSpeechRecognizer.prototype.openMic = function() {
  * Returns false if the recognizer is not recording. True otherwise.
  */
 JsSpeechRecognizer.prototype.isRecording = function() {
-    if (this.recordingState === this.RecordingEnum.NOT_RECORDING) {
-        return false;
-    }
-
-    return true;
+    return (this.recordingState !== this.RecordingEnum.NOT_RECORDING);
 };
 
 JsSpeechRecognizer.prototype.startTrainingRecording = function(curWord) {
@@ -256,6 +249,7 @@ JsSpeechRecognizer.prototype.generateModel = function() {
     var j = 0;
     var k = 0;
     var key = "";
+    var averageModel = {};
 
     // Reset the model
     this.model = {};
@@ -271,10 +265,14 @@ JsSpeechRecognizer.prototype.generateModel = function() {
             this.model[key].push(this.modelBuffer[i]);
         }
     }
+    
+    // If we are only using the trained entries, no need to anything else
+    if(this.useRecognitionModel === this.RecognitionModel.TRAINED) {
+        return;
+    }
 
     // Average Model
     // Holds one entry for each key. That entry is the average of all the entries in the model
-    this.averageModel = {};
     for (key in this.model) {
         var average = [];
         for (i = 0; i < this.model[key].length; i++) {
@@ -283,8 +281,8 @@ JsSpeechRecognizer.prototype.generateModel = function() {
             }
         }
 
-        this.averageModel[key] = [];
-        this.averageModel[key].push(average);
+        averageModel[key] = [];
+        averageModel[key].push(average);
     }
 
     // Interpolation - Take the average of each pair of entries for a key and 
@@ -302,8 +300,17 @@ JsSpeechRecognizer.prototype.generateModel = function() {
                     averageInterpolation[j] = (entryOne + entryTwo) / 2;
                 }
 
-                this.averageModel[key].push(averageInterpolation);
+                averageModel[key].push(averageInterpolation);
             }
+        }
+    }
+
+    if (this.useRecognitionModel === this.RecognitionModel.AVERAGE) {
+        this.model = averageModel;
+    } else if (this.useRecognitionModel === this.RecognitionModel.COMPOSITE) {
+        // Merge the average model into the model
+        for(key in this.model) {
+            this.model[key] = this.model[key].concat(averageModel[key]);
         }
     }
 
@@ -311,21 +318,7 @@ JsSpeechRecognizer.prototype.generateModel = function() {
 
 
 JsSpeechRecognizer.prototype.getTopRecognitionHypotheses = function(numResults) {
-
-    if (this.useRecognitionModel === this.RecognitionModel.AVERAGE) {
-        return this.findClosestMatch(this.groupedValues, numResults, this.averageModel, this.findDistance);
-    } else if (this.useRecognitionModel === this.RecognitionModel.TRAINED) {
-        return this.findClosestMatch(this.groupedValues, numResults, this.model, this.findDistance);
-    } else {
-        // For the composite model, combine the trained and average results and sort them
-        var results = this.findClosestMatch(this.groupedValues, -1, this.model, this.findDistance);
-        var resultsAverage = this.findClosestMatch(this.groupedValues, -1, this.averageModel, this.findDistance);
-
-        var allResults = results.concat(resultsAverage);
-        allResults.sort(function(a, b) { return b.confidence - a.confidence; });
-
-        return allResults.slice(0, numResults);
-    }
+    return this.findClosestMatch(this.groupedValues, numResults, this.model, this.findDistance);
 };
 
 /**
@@ -363,19 +356,7 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     // Copy buffer, and normalize it, and use it to find the closest match
     workingGroupBuffer = this.keywordSpottingGroupBuffer.slice(0);
     this.normalizeInput(workingGroupBuffer);
-
-    if (this.useRecognitionModel === this.RecognitionModel.AVERAGE) {
-        allResults = this.findClosestMatch(workingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
-    } else if (this.useRecognitionModel === this.RecognitionModel.TRAINED) {
-        allResults = this.findClosestMatch(workingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
-    } else {
-        // Using the composite model. Combine the trained and the average
-        var results = this.findClosestMatch(workingGroupBuffer, -1, this.model, this.findDistanceForKeywordSpotting);
-        var resultsAverage = this.findClosestMatch(workingGroupBuffer, -1, this.averageModel, this.findDistanceForKeywordSpotting);
-
-        allResults = results.concat(resultsAverage);
-        allResults.sort(function(a, b) { return b.confidence - a.confidence; });
-    }
+    allResults = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting);
 
     // See if a keyword was spotted
     if (allResults[0] !== undefined && allResults[0].confidence > this.keywordSpottingMinConfidence) {
