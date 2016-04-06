@@ -16,7 +16,7 @@
 function JsSpeechRecognizer() {
 
     // Constants
-    this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3 };
+    this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3, "KEYWORD_SPOTTING_NOISY": 4 };
     Object.freeze(this.RecordingEnum);
     this.RecognitionModel = { "TRAINED": 0, "AVERAGE": 1, "COMPOSITE": 2 };
     Object.freeze(this.RecognitionModel);
@@ -38,6 +38,13 @@ function JsSpeechRecognizer() {
 
     // Get an audio context
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+
+    // Generate functions for keyword spotting
+    this.findDistanceForKeywordSpotting = this.generateFindDistanceForKeywordSpotting(-1);
+    this.findDistanceForKeywordSpotting0 = this.generateFindDistanceForKeywordSpotting(0);
+    this.findDistanceForKeywordSpotting5 = this.generateFindDistanceForKeywordSpotting(5);
+    this.findDistanceForKeywordSpotting15 = this.generateFindDistanceForKeywordSpotting(15);
 
 
     // Adjustable parameters
@@ -131,6 +138,15 @@ JsSpeechRecognizer.prototype.startRecognitionRecording = function() {
 JsSpeechRecognizer.prototype.startKeywordSpottingRecording = function() {
     this.resetBuffers();
     this.recordingState = this.RecordingEnum.KEYWORD_SPOTTING;
+};
+
+/**
+ * Starts a recording in KEYWORD_SPOTTING_NOISY mode.
+ * @public
+ */
+JsSpeechRecognizer.prototype.startKeywordSpottingNoisyRecording = function() {
+    this.resetBuffers();
+    this.recordingState = this.RecordingEnum.KEYWORD_SPOTTING_NOISY;
 };
 
 /**
@@ -365,7 +381,7 @@ JsSpeechRecognizer.prototype.generateOnAudioProcess = function() {
         }
 
         // Depending on the state, handle the data differently
-        if (_this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING) {
+        if (_this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING || _this.recordingState === _this.RecordingEnum.KEYWORD_SPOTTING_NOISY) {
 
             // Check if we should reset the buffers
             var now = new Date().getTime();
@@ -418,10 +434,17 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
     // Copy buffer, and normalize it, and use it to find the closest match
     workingGroupBuffer = this.keywordSpottingGroupBuffer.slice(0);
     this.normalizeInput(workingGroupBuffer);
-    allResults = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting);
+
+    // Use the correct keyword spotting function
+    if (this.recordingState === this.RecordingEnum.KEYWORD_SPOTTING_NOISY) {
+        allResults = this.keywordDetectedNoisy(workingGroupBuffer);
+    } else {
+        allResults = this.keywordDetectedNormal(workingGroupBuffer);
+    }
+
 
     // See if a keyword was spotted
-    if (allResults[0] !== undefined && allResults[0].confidence > this.keywordSpottingMinConfidence) {
+    if (allResults !== null && allResults[0] !== undefined) {
 
         // Save the audio
         recordingLength = (allResults[0].frameCount / this.numGroups) * this.analyser.fftSize;
@@ -441,6 +464,87 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 
 };
 
+// Keyword spotting functions
+
+/**
+ * Analyzes a buffer to determine if a keyword has been found.
+ * Will return an array if a keyword was found, null otherwise.
+ * 
+ * @param {Array} workingGroupBuffer
+ * @return {Array|null}
+ * @private
+ */
+JsSpeechRecognizer.prototype.keywordDetectedNormal = function(workingGroupBuffer) {
+    var allResults = {};
+
+    allResults = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting);
+
+    if (allResults[0] !== undefined && allResults[0].confidence > this.keywordSpottingMinConfidence) {
+        return allResults;
+    }
+
+    return null;
+};
+
+/**
+ * Analyzes a buffer to determine if a keyword has been found.
+ * Will return an array if a keyword was found, null otherwise.
+ * Designed to adjust for different levels of noise.
+ * 
+ * @param {Array} workingGroupBuffer
+ * @return {Array|null}
+ * @private
+ */
+JsSpeechRecognizer.prototype.keywordDetectedNoisy = function(workingGroupBuffer) {
+
+    // TODO: Make it possible for a user to specify the number of keyword spotting functions
+    // And change this duplicated code to a loop!
+
+    var allResults15 = {};
+    var allResults15MinConfidence = this.keywordSpottingMinConfidence;
+
+    allResults15 = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting15);
+
+    if (allResults15[0].confidence <= allResults15MinConfidence) {
+        return null;
+    }
+
+
+    var allResults5 = {};
+    var allResults5MinConfidence = this.keywordSpottingMinConfidence - 0.1;
+
+    allResults5 = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting5);
+
+    if (allResults5[0].confidence <= allResults5MinConfidence) {
+        return null;
+    }
+
+
+    var allResults0 = {};
+    var allResults0MinConfidence = this.keywordSpottingMinConfidence - 0.15;
+
+    allResults0 = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting0);
+
+    if (allResults0[0].confidence <= allResults0MinConfidence) {
+        return null;
+    }
+
+
+    // finally, run the normal check
+    var allResults = {};
+
+    allResults = this.findClosestMatch(workingGroupBuffer, 1, this.model, this.findDistanceForKeywordSpotting);
+
+    // Calculate the minimum confidence
+    var allResultsMinConfidence = this.keywordSpottingMinConfidence - 0.1 - (Math.max((allResults[0].noise * 1.25) - 1, 0) * 0.75);
+
+    // Final check for returning the results
+    if (allResults[0] !== undefined && allResults[0].confidence > allResultsMinConfidence) {
+        return allResults;
+    }
+
+    return null;
+};
 
 // Calculation functions
 
@@ -488,10 +592,12 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, spee
 
             var curDistance = findDistanceFunction(input, speechModel[key][i]);
             var curConfidence = this.calcConfidence(curDistance, speechModel[key][i]);
+            var curNoise = this.calculateNoise(input, speechModel[key][i]);
 
             var newResult = {};
             newResult.match = key;
             newResult.confidence = curConfidence;
+            newResult.noise = curNoise;
             newResult.frameCount = speechModel[key][i].length;
             allResults.push(newResult);
         }
@@ -529,25 +635,39 @@ JsSpeechRecognizer.prototype.findDistance = function(input, modelEntry) {
 };
 
 /**
- * Calculates the keyword spotting distance an input is from a model entry.
+ * Will generate a distanceForKeywordSpotting function.
+ * The function will calculate differences for entries in the model that
+ * are greater than the parameter modelEntryGreaterThanVal.
  * 
- * @param {Array} input
- * @param {Array} modelEntry
- * @return {Number}
+ * @param {Number} modelEntryGreaterThanVal
+ * @return {Function}
  * @private
  */
-JsSpeechRecognizer.prototype.findDistanceForKeywordSpotting = function(input, modelEntry) {
-    var i = 0;
-    var distance = 0;
+JsSpeechRecognizer.prototype.generateFindDistanceForKeywordSpotting = function(modelEntryGreaterThanVal) {
 
-    // Compare from the end of the input, for modelEntry.length entries
-    for (i = 1; i <= modelEntry.length; i++) {
-        var modelVal = modelEntry[modelEntry.length - i] || 0;
-        var inputVal = input[input.length - i] || 0;
-        distance += Math.abs(modelVal - inputVal);
-    }
+    /**
+     * Calculates the keyword spotting distance an input is from a model entry.
+     * 
+     * @param {Array} input
+     * @param {Array} modelEntry
+     * @return {Number}
+     * @private
+     */
+    return function(input, modelEntry) {
+        var i = 0;
+        var distance = 0;
 
-    return distance;
+        // Compare from the end of the input, for modelEntry.length entries
+        for (i = 1; i <= modelEntry.length; i++) {
+            var modelVal = modelEntry[modelEntry.length - i] || 0;
+            var inputVal = input[input.length - i] || 0;
+            if (modelVal > modelEntryGreaterThanVal) {
+                distance += Math.abs(modelVal - inputVal);
+            }
+        }
+
+        return distance;
+    };
 };
 
 /**
@@ -568,4 +688,30 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, modelEntry) {
     }
 
     return (1 - (distance / sum));
+};
+
+/**
+ * Calculates how noisy an input is compared to a model entry.
+ * 
+ * @param {Array} input
+ * @param {Array} modelEntry
+ * @return {Number}
+ * @private
+ */
+JsSpeechRecognizer.prototype.calculateNoise = function(input, modelEntry) {
+    var i = 0;
+    var sumIn = 0;
+    var sumEntry = 0;
+
+    // Compare from the end of the input, for modelEntry.length entries
+    for (i = 1; i <= modelEntry.length; i++) {
+        var modelVal = modelEntry[modelEntry.length - i] || 0;
+        var inputVal = input[input.length - i] || 0;
+        sumIn += inputVal * inputVal;
+
+        // TODO: Optimize by caching the calculation for the model
+        sumEntry += modelVal * modelVal;
+    }
+
+    return (sumIn / sumEntry);
 };
