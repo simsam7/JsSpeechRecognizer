@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>JavaScript Speech Recognition - Keyword Spotting Demo</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../../css/normalize.css">
+    <link rel="stylesheet" href="../../css/skeleton.css">
+    <link rel="stylesheet" href="../../css/demos.css">
+
+    <style>
+        #keywordSpottingAction {
+            background-color: #33C3F0;
+            position: absolute;
+            top: 90%;
+            text-align: right;
+            background-color: #33C3F0;
+            width: 560px;
+        }
+        
+        #keywordSpottingAction h3 {
+            padding-right: 10px;
+            margin-bottom: 5px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Include the WebRTC adapter -->
+    <script src="../../adapter.js"></script>
+    <!-- Include jquery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="../../JsSpeechRecognizer.js"></script>
+
+
+
+    <script>
+        // Load a notification sound
+        var notificationSound = new Audio("../resources/sounds/notification1.wav");
+
+        var speechRec = new JsSpeechRecognizer();
+
+        // Adjust the recognizer parameters
+        speechRec.numGroups = 60;
+        speechRec.groupSize = 3;
+        speechRec.keywordSpottingMinConfidence = 0.7;
+
+        speechRec.openMic();
+
+        $(document).ready(function() {
+            // Add the handler for the button
+            $("#startStopRecordingButton").click(function() {
+                if (!speechRec.isRecording()) {
+                    var word = $("#currentWordText").val();
+                    speechRec.startTrainingRecording(word);
+
+                    // Update the UI, and prevent the testing button from being pressed
+                    $("#startStopRecordingButton").val("stop training");
+                    document.getElementById("testingStartStopRecordingButton").disabled = true;
+
+
+                } else {
+                    var recordingId = speechRec.stopRecording();
+
+                    // Update the UI and re-enable testing button
+                    $("#startStopRecordingButton").val("start training");
+                    document.getElementById("testingStartStopRecordingButton").disabled = false;
+
+
+                    // Append to the results area
+                    var playbackDivId = "playbackResultId" + recordingId;
+                    var playButtonId = "playRecordingButton" + recordingId;
+                    var deleteButtonId = "deleteRecordingButton" + recordingId;
+
+                    var appendHtml = '<div id=' + playbackDivId + '>recording #' + recordingId;
+                    appendHtml += ' for word <b>' + $("#currentWordText").val() + '</b>';
+                    appendHtml += '<input type="button" class="playDeleteButton" value="play" id="' + playButtonId + '"" />';
+                    appendHtml += '<input type="button" class="playDeleteButton" value="delete" id="' + deleteButtonId + '" />';
+                    appendHtml += '</div>';
+
+                    $("#resultsDiv").append(appendHtml);
+
+                    // Add the play click functionality
+                    var finalPlaybackId = recordingId - 1;
+                    $("#" + playButtonId).click(function() {
+                        speechRec.playTrainingBuffer((finalPlaybackId));
+                    });
+
+                    // Add the delete click functionality
+                    $("#" + deleteButtonId).click(function() {
+                        $("#" + playbackDivId).hide();
+                        speechRec.deleteTrainingBuffer(finalPlaybackId);
+                        speechRec.generateModel();
+                    });
+
+                    // regenerate the model
+                    speechRec.generateModel();
+
+                }
+            });
+
+            $("#testingStartStopRecordingButton").click(function() {
+                if (!speechRec.isRecording()) {
+                    // Update the UI and prevent the training button from being pressed
+                    $("#testingStartStopRecordingButton").val("stop testing");
+                    document.getElementById("startStopRecordingButton").disabled = true;
+
+                    speechRec.startKeywordSpottingNoisyRecording();
+                } else {
+                    $("#testingStartStopRecordingButton").val("start testing");
+                    document.getElementById("startStopRecordingButton").disabled = false;
+
+                    speechRec.stopRecording();
+                }
+            });
+
+            // Update the confidence threshold
+            $("#confidenceThreshold").val(speechRec.keywordSpottingMinConfidence);
+            $("#confidenceThresholdOutput").val(speechRec.keywordSpottingMinConfidence);
+
+            $("#confidenceThreshold").on('change', function() {
+                $("#confidenceThresholdOutput").val($("#confidenceThreshold").val());
+                speechRec.keywordSpottingMinConfidence = $("#confidenceThreshold").val();
+            });
+
+            // Update the result display
+            $("#keywordSpottingAction").hide();
+
+            $("#wordLikeButton").click(function() {
+                $("#currentWordText").val("Like It 👍");
+            });
+            $("#wordHeartButton").click(function() {
+                $("#currentWordText").val("Heart ❤️");
+            });
+            $("#wordShareButton").click(function() {
+                $("#currentWordText").val("Share ✉️");
+            });
+
+
+        });
+
+
+        var curTimeout = null;
+        var updateKeywordSpotting = function(result) {
+
+            if ($("#playNotificationCheckbox").prop('checked')) {
+                // play the notification sound
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+                notificationSound.play();
+            }
+
+
+            // Cancel the old timeout
+            if (curTimeout !== null) {
+                clearTimeout(curTimeout);
+            }
+
+            $("#keywordSpottingAction").html("<h3>" + result.match + "</h3>");
+
+            // Show the result
+            $("#keywordSpottingAction").slideDown();
+
+            // Hide after 5 seconds
+            curTimeout = window.setTimeout(function() {
+                $("#keywordSpottingAction").slideUp();
+            }, 5000);
+
+        };
+
+        // Set the keyword spotting callback
+        speechRec.keywordSpottedCallback = updateKeywordSpotting;
+    </script>
+
+
+    <div class="section">
+        <div class="container" style="margin-top: 5%">
+            <h1 class="section-heading">JsSpeechRecognizer - Video Interaction</h1>
+            <p class="section-description">JavaScript Speech Recognition Video Interaction Demo</p>
+            <a href="https://github.com/dreamdom/JsSpeechRecognizer">JsSpeechRecognizer github page</a>
+            <ol style="margin-top:20px;">
+                <li>Train the keyword you would like to spot many times.</li>
+                <li>Test by pressing start testing. Say the keyword you trained. Try testing while the video is playing.</li>
+                <li>For more detailed instructions, click <a href="https://github.com/dreamdom/JsSpeechRecognizer/tree/master/demos/video-interaction/">here</a>.</li>
+            </ol>
+
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="row">
+            <h2>Training</h2>
+            <div>
+                <input class="button" id="wordLikeButton" type="button" value="Like It 👍" />
+            </div>
+            <div>
+                Word: <input id="currentWordText" type="text" value="" />
+                <input class="button-primary" id="startStopRecordingButton" type="button" value="start training" />
+            </div>
+
+            <div id="resultsDiv">
+            </div>
+        </div>
+
+        <div class="row">
+            <h2>Testing</h2>
+            <div>
+                <label for="fader">Confidence Threshold</label>
+                <input type="range" min="0" max="1" value=".55" step=".05" id="confidenceThreshold" />
+                <output for="confidenceThreshold" id="confidenceThresholdOutput">.55</output>
+            </div>
+            <div>
+                <label><input type="checkbox" id="playNotificationCheckbox" checked="checked" /> Play notification sound</label>
+            </div>
+            <div>
+                <input class="button-primary" id="testingStartStopRecordingButton" type="button" value="start testing" />
+            </div>
+            <div id="testingResultsDiv">
+            </div>
+        </div>
+
+
+        <div class="row">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/uxpDa-c-4Mc?start=100" frameborder="0" allowfullscreen></iframe>
+        </div>
+        
+
+        <div id="keywordSpottingAction" class="row">
+        </div>
+
+        <script>
+            window.setTimeout(function() {
+                $("#keywordSpottingAction").slideUp();
+            }, 5000);
+        </script>
+
+    </div>
+
+</body>
+
+</html>
