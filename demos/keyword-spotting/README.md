@@ -2,7 +2,7 @@
 
 Train the Speech Recognizer to recognize a spoken keyword.
 
-[Keyword Spotting Live Demo](https://dreamdom.github.io/speechrec.html)
+[Keyword Spotting Live Demo](https://dreamdom.github.io/demos/keyword-spotting/keyword-spotting.html)
 
 ## Video
 Here is a [short video](https://vimeo.com/161142124) that shows how to run the demo.

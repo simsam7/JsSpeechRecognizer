@@ -6,8 +6,12 @@ JavaScript Speech Recognizer
 
 [Keyword Spotting Demo](https://dreamdom.github.io/demos/keyword-spotting/keyword-spotting.html)
 
+[Video Interaction Live Demo](https://dreamdom.github.io/demos/video-interaction/video-interaction.html)
+
 ## Video
 Here is a [short video](https://vimeo.com/161142124) of the keyword spotting demo.
+
+And here is a [short video](https://vimeo.com/161726625) of the video interaction demo.
 
 ## What is It?
 JsSpeechRecognizer is a javascript based speech recognizer. It allows you to train words or phrases to be recognized, and then record new audio to match to these words or phrases.

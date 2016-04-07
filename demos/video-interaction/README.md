@@ -2,6 +2,8 @@
 
 Interact with a video using your voice.
 
+[Video Interaction Live Demo](https://dreamdom.github.io/demos/video-interaction/video-interaction.html)
+
 ## Video
 Here is a [short video](https://vimeo.com/161726625) that shows how to run the demo.
 
@@ -21,4 +23,4 @@ Here is a [short video](https://vimeo.com/161726625) that shows how to run the d
 4. Try testing while playing audio from different sources.
 
 ## Final Notes
-At the moment I have only tried testing on one computer.
+At the moment I have only tried testing on one computer. Also I have only tested in Firefox and Chrome.
