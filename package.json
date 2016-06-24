@@ -1,0 +1,29 @@
+{
+  "name": "jsspeechrecognizer",
+  "version": "1.0.0",
+  "description": "JavaScript Speech Recognizer",
+  "main": "JsSpeechRecognizer.js",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dreamdom/JsSpeechRecognizer.git"
+  },
+  "keywords": [
+    "speech",
+    "recognition",
+    "keyword",
+    "spotting"
+  ],
+  "author": "Dominik Winkelman",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dreamdom/JsSpeechRecognizer/issues"
+  },
+  "homepage": "https://github.com/dreamdom/JsSpeechRecognizer#readme",
+  "devDependencies": {
+    "rollup": "^0.33.0"
+  }
+}

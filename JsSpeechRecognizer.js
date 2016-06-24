@@ -1,11 +1,11 @@
 /**
  * JavaScript based speech recognizer.
- * 
+ *
  * Copyright 2016, Dominic Winkelman
  * Free to use under the Apache 2.0 License
- * 
+ *
  * https://github.com/dreamdom/JsSpeechRecognizer
- * 
+ *
  * Requires the WebRTC adapter.js file.
  */
 
@@ -13,7 +13,7 @@
  * Constructor for JsSpeechRecognizer.
  * Sets a number of parameters to default values.
  */
-function JsSpeechRecognizer() {
+export default function JsSpeechRecognizer() {
 
     // Constants
     this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3, "KEYWORD_SPOTTING_NOISY": 4 };
@@ -268,7 +268,7 @@ JsSpeechRecognizer.prototype.generateModel = function() {
         averageModel[key].push(average);
     }
 
-    // Interpolation - Take the average of each pair of entries for a key and 
+    // Interpolation - Take the average of each pair of entries for a key and
     // add it to the average model
     for (key in this.model) {
 
@@ -469,7 +469,7 @@ JsSpeechRecognizer.prototype.keywordSpottingProcessFrame = function(groups, curF
 /**
  * Analyzes a buffer to determine if a keyword has been found.
  * Will return an array if a keyword was found, null otherwise.
- * 
+ *
  * @param {Array} workingGroupBuffer
  * @return {Array|null}
  * @private
@@ -490,7 +490,7 @@ JsSpeechRecognizer.prototype.keywordDetectedNormal = function(workingGroupBuffer
  * Analyzes a buffer to determine if a keyword has been found.
  * Will return an array if a keyword was found, null otherwise.
  * Designed to adjust for different levels of noise.
- * 
+ *
  * @param {Array} workingGroupBuffer
  * @return {Array|null}
  * @private
@@ -550,7 +550,7 @@ JsSpeechRecognizer.prototype.keywordDetectedNoisy = function(workingGroupBuffer)
 
 /**
  * Normalizes an input array to a scale from 0 to 100.
- * 
+ *
  * @param {Array} input
  * @private
  */
@@ -566,7 +566,7 @@ JsSpeechRecognizer.prototype.normalizeInput = function(input) {
 /**
  * Finds the closest matches for an input, for a specified model.
  * Uses specified findDistance function, or a default one.
- * 
+ *
  * @param {Array} input
  * @param {Number} numResults
  * @param {Object} speechModel
@@ -615,7 +615,7 @@ JsSpeechRecognizer.prototype.findClosestMatch = function(input, numResults, spee
 
 /**
  * Computes the sum of differances between an input and a modelEntry.
- * 
+ *
  * @param {Array} input
  * @param {Array} modelEntry
  * @return {Number}
@@ -638,7 +638,7 @@ JsSpeechRecognizer.prototype.findDistance = function(input, modelEntry) {
  * Will generate a distanceForKeywordSpotting function.
  * The function will calculate differences for entries in the model that
  * are greater than the parameter modelEntryGreaterThanVal.
- * 
+ *
  * @param {Number} modelEntryGreaterThanVal
  * @return {Function}
  * @private
@@ -647,7 +647,7 @@ JsSpeechRecognizer.prototype.generateFindDistanceForKeywordSpotting = function(m
 
     /**
      * Calculates the keyword spotting distance an input is from a model entry.
-     * 
+     *
      * @param {Array} input
      * @param {Array} modelEntry
      * @return {Number}
@@ -673,7 +673,7 @@ JsSpeechRecognizer.prototype.generateFindDistanceForKeywordSpotting = function(m
 /**
  * Calculates a confidence value based on the distance form a model entry.
  * Max confidence is 1, min is negative infinity.
- * 
+ *
  * @param {Number} distance
  * @param {Array} modelEntry
  * @return {Number}
@@ -692,7 +692,7 @@ JsSpeechRecognizer.prototype.calcConfidence = function(distance, modelEntry) {
 
 /**
  * Calculates how noisy an input is compared to a model entry.
- * 
+ *
  * @param {Array} input
  * @param {Array} modelEntry
  * @return {Number}

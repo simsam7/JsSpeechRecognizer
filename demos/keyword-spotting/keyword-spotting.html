@@ -16,10 +16,10 @@
 <body>
 
     <!-- Include the WebRTC adapter -->
-    <script src="../../adapter.js"></script>
+    <script src="../../dist/adapter.js"></script>
     <!-- Include jquery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-    <script src="../../JsSpeechRecognizer.js"></script>
+    <script src="../../dist/JsSpeechRecognizer.js"></script>
 
     <script>
         // Load a notification sound
@@ -43,15 +43,15 @@
                     // Update the UI, and prevent the testing button from being pressed
                     $("#startStopRecordingButton").val("stop training");
                     document.getElementById("testingStartStopRecordingButton").disabled = true;
-                    
-                    
+
+
                 } else {
                     var recordingId = speechRec.stopRecording();
 
                     // Update the UI and re-enable testing button
                     $("#startStopRecordingButton").val("start training");
                     document.getElementById("testingStartStopRecordingButton").disabled = false;
-                    
+
 
                     // Append to the results area
                     var playbackDivId = "playbackResultId" + recordingId;
@@ -90,12 +90,12 @@
                     // Update the UI and prevent the training button from being pressed
                     $("#testingStartStopRecordingButton").val("stop testing");
                     document.getElementById("startStopRecordingButton").disabled = true;
-                    
+
                     speechRec.startKeywordSpottingRecording();
                 } else {
                     $("#testingStartStopRecordingButton").val("start testing");
                     document.getElementById("startStopRecordingButton").disabled = false;
-                    
+
                     speechRec.stopRecording();
                 }
             });
