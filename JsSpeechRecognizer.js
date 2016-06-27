@@ -13,7 +13,7 @@
  * Constructor for JsSpeechRecognizer.
  * Sets a number of parameters to default values.
  */
-module.exports = function JsSpeechRecognizer() {
+export default function JsSpeechRecognizer() {
 
     // Constants
     this.RecordingEnum = { "NOT_RECORDING": 0, "TRAINING": 1, "RECOGNITION": 2, "KEYWORD_SPOTTING": 3, "KEYWORD_SPOTTING_NOISY": 4 };
