@@ -26,3 +26,6 @@ Temporary Items
 
 # npm
 node_modules/
+
+# Built files
+dist/

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "JavaScript Speech Recognizer",
   "main": "JsSpeechRecognizer.js",
-  "script": {
-    "build": "rollup -c"
+  "scripts": {
+    "install": "rollup -c"
   },
   "repository": {
     "type": "git",
