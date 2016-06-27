@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "JavaScript Speech Recognizer",
   "main": "JsSpeechRecognizer.js",
+  "script": {
+    "build": "rollup -c"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dreamdom/JsSpeechRecognizer.git"
@@ -18,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/dreamdom/JsSpeechRecognizer/issues"
   },
-  "homepage": "https://github.com/dreamdom/JsSpeechRecognizer#readme"
+  "homepage": "https://github.com/dreamdom/JsSpeechRecognizer#readme",
+  "devDependencies": {
+    "rollup": "^0.33.0"
+  }
 }
