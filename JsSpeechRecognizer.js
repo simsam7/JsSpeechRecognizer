@@ -54,7 +54,7 @@ export default function JsSpeechRecognizer() {
     this.analyser.minDecibels = -80;
     this.analyser.maxDecibels = -10;
     this.analyser.smoothingTimeConstant = 0;
-    this.analyser.fftSize = 1024;
+    this.analyser.fftSize = 4096;
 
     // Create the scriptNode
     this.scriptNode = this.audioCtx.createScriptProcessor(this.analyser.fftSize, 1, 1);
