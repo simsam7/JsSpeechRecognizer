@@ -105,6 +105,18 @@ JsSpeechRecognizer.prototype.openMic = function() {
 };
 
 /**
+ * Close access to the microphone.
+ * @public
+ */
+JsSpeechRecognizer.prototype.closeMic = function() {
+  if (this.stream) {
+    this.stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+  }
+};
+
+/**
  * Returns false if the recognizer is not recording. True otherwise.
  * @public.
  */
